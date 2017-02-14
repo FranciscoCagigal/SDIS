@@ -21,21 +21,26 @@ public class Client {
 		request = args[2];
 		plate = args[3];
 		
-		if(request == RequestType.REGISTER.toString()){
+		if(request.equals(RequestType.REGISTER.toString())){
 			name = args[4];
 			
 			message = request + " " + plate + " " + name;
 		}
-		else if(request == RequestType.LOOKUP.toString()){
+		else if(request.equals(RequestType.LOOKUP.toString())){
+			System.out.println("entrei!");
 			message = request + " " + plate;
 		}
 		
+		System.out.println("message: " + message);
+		
 		// send request
 		DatagramSocket socket = new DatagramSocket();
-		byte[]sbuf = message.getBytes();
+		byte[]sbuf = message.getBytes();		
 		InetAddress address = InetAddress.getByName(host);
 		DatagramPacket packet = new DatagramPacket(sbuf, sbuf.length, address, port);
 		socket.send(packet);
+		
+		System.out.println("message sent!");
 		
 		// get response
 		byte[] rbuf = new byte[sbuf.length];
