@@ -11,13 +11,14 @@ public class Server {
 	
 	public static void main(String[] args) throws IOException{
 		
-		//args must be = 1
+		if(args.length!=1){
+			System.out.println("Incorrect number of arguments");
+			return;
+		}
 		
 		port=Integer.parseInt(args[0]);
 		
 		DatagramSocket socket = new DatagramSocket(port);
-		
-		
 		
 		while (true) {
 			System.out.println("waiting...");
@@ -34,8 +35,15 @@ public class Server {
 			System.out.println(divided[0]);
 			
 			if(divided[0].equals(RequestType.REGISTER.toString())){
-				name=divided[2].trim();//todo:+" "+ divided[3] + " " divided[4] etc...; ex: joao miguel lopes
+				for(int i=2;i<divided.length;i++){
+					name+=divided[i]+" ";
+				}
+								
+				name=name.trim();
 				plate = divided[1];
+				
+				System.out.println("plate: " + plate);
+				System.out.println("name: " + name);
 				
 				if(findEntryByPlate(plate)!=null){
 					answer = "-1";
@@ -49,10 +57,11 @@ public class Server {
 			}
 			else if(divided[0].equals(RequestType.LOOKUP.toString())){
 				plate = divided[1].trim();
+				System.out.println("plate: " + plate);
 				if((name=findEntryByPlate(plate))!=null){
 					answer = plate + " " + name;
 				}
-				else answer = "-1";
+				else answer = "NOT_FOUND";
 			}
 			else {
 				throw new IllegalArgumentException();

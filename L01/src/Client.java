@@ -18,20 +18,18 @@ public class Client {
 		
 		host = args[0];
 		port = Integer.parseInt(args[1]);
-		request = args[2];
+		request = args[2].toUpperCase();
 		plate = args[3];
-		
+
 		if(request.equals(RequestType.REGISTER.toString())){
 			name = args[4];
-			
 			message = request + " " + plate + " " + name;
 		}
 		else if(request.equals(RequestType.LOOKUP.toString())){
-			System.out.println("entrei!");
 			message = request + " " + plate;
 		}
 		
-		System.out.println("message: " + message);
+		System.out.println("Request: " + message);
 		
 		// send request
 		DatagramSocket socket = new DatagramSocket();
@@ -40,15 +38,15 @@ public class Client {
 		DatagramPacket packet = new DatagramPacket(sbuf, sbuf.length, address, port);
 		socket.send(packet);
 		
-		System.out.println("message sent!");
+		System.out.println("Request sent!");
 		
 		// get response
-		byte[] rbuf = new byte[sbuf.length];
+		byte[] rbuf = new byte[300];
 		packet = new DatagramPacket(rbuf, rbuf.length);
 		socket.receive(packet);
 		// display response
 		String received = new String(packet.getData());
-		System.out.println("Echoed Message: " + received);
+		System.out.println("Request answer: " + received);
 		socket.close();
 	}
 
