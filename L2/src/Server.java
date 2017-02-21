@@ -3,28 +3,39 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.util.ArrayList;
+import java.util.Timer;
 
 public class Server {
 	
-	private static int port;
+	private static int ServicePort, MultiCastPort;
+	private static String MultiCastAddress;
 	private static ArrayList<Entry> entries = new ArrayList<Entry>();
 	
-	public static void main(String[] args) throws IOException{
+	public static void main(String[] args) throws IOException, InterruptedException{
 		
-		if(args.length!=1){
+		if(args.length!=3){
 			System.out.println("Incorrect number of arguments");
 			return;
 		}
 		
-		port=Integer.parseInt(args[0]);
+		MultiCastAddress=args[2];
+		MultiCastPort=Integer.parseInt(args[1]);
+		ServicePort=Integer.parseInt(args[0]);
+		InetAddress ServiceAddress = InetAddress.getLocalHost();
 		
-		DatagramSocket socket = new DatagramSocket(port);
+		Advertise ad = new Advertise (MultiCastAddress, MultiCastPort, 
+										ServiceAddress.getHostName(), ServicePort);
+		
+		Timer timer = new Timer(true);
+		timer.scheduleAtFixedRate(ad, 0, 1000);
+				
+		DatagramSocket ServerSocket = new DatagramSocket(ServicePort);
 		
 		while (true) {
 			System.out.println("waiting...");
 			byte[] buffer=new byte[300];
 			DatagramPacket p = new DatagramPacket(buffer, buffer.length);
-			socket.receive(p);
+			ServerSocket.receive(p);
 			System.out.println("received");
 			String received = new String(p.getData());
 			String[] divided = received.split(" ");
@@ -71,7 +82,7 @@ public class Server {
 			InetAddress responseAddress = p.getAddress();
 			int responsePort = p.getPort();
 			p = new DatagramPacket(sbuf, sbuf.length, responseAddress, responsePort);
-			socket.send(p);
+			ServerSocket.send(p);
 			
 		}
 		

@@ -1,0 +1,11 @@
+
+public class Advertise extends Thread {
+
+	
+	public void run() {
+		
+		while(true) {
+			
+		}
+	}
+}
