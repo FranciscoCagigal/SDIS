@@ -1,22 +1,34 @@
 package peer;
 
+import java.io.File;
 import java.net.InetAddress;
+import java.net.MalformedURLException;
 import java.net.UnknownHostException;
+import java.rmi.Naming;
 import java.rmi.RemoteException;
+import java.rmi.server.UnicastRemoteObject;
 
-public class Peer implements IPeer {
-	
+public class Peer extends UnicastRemoteObject  implements IPeer {
+
 	private int protocolVersion,peerId;
 	private String remoteObject;
 	
 	private static InetAddress mcAddress, mdbAddress, mdrAddress;
 	private int mcPort, mdbPort, mdrPort;
+	
+	protected Peer() throws RemoteException {
+		super();
+		// TODO Auto-generated constructor stub
+	}
 
-	public void main(String[] args) throws UnknownHostException{
+	public void main(String[] args) throws UnknownHostException, RemoteException, MalformedURLException{
 		
 		if(!validateArgs(args)){
 			return;
 		}
+		
+		Peer peer= new Peer();
+		Naming.rebind("peerRMI", peer);//acho q tem q ter aqui o id do peer
 		
 	}
 	
@@ -39,6 +51,36 @@ public class Peer implements IPeer {
 		mdrPort=Integer.parseInt(args[8]);
 		
 		return true;
+		
+	}
+
+	@Override
+	public void backup(File file, int replDeg) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void restore(File file) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void delete(File file) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void reclaim(int space) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void state() {
+		// TODO Auto-generated method stub
 		
 	}
 }
