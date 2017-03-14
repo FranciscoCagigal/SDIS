@@ -4,8 +4,11 @@ import java.io.File;
 import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.UnknownHostException;
+import java.rmi.AlreadyBoundException;
 import java.rmi.Naming;
 import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 
 public class Peer extends UnicastRemoteObject  implements IPeer {
@@ -21,14 +24,21 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 		// TODO Auto-generated constructor stub
 	}
 
-	public void main(String[] args) throws UnknownHostException, RemoteException, MalformedURLException{
+	public void main(String[] args) throws UnknownHostException, RemoteException, MalformedURLException, AlreadyBoundException{
 		
 		if(!validateArgs(args)){
 			return;
 		}
 		
 		Peer peer= new Peer();
-		Naming.rebind("peerRMI", peer);//acho q tem q ter aqui o id do peer
+		
+		Registry registry = LocateRegistry.getRegistry();
+		
+		IPeer iserver= (IPeer) UnicastRemoteObject.exportObject(peer, 0);
+		
+		registry.bind(remoteObject, iserver);
+		
+		System.err.println("Server ready");
 		
 	}
 	
