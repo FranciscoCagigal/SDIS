@@ -72,7 +72,7 @@ public class TestApp {
 		return true;
 	}
 	
-	private void callServer(String[] args){
+	private void callServer(String[] args) throws NumberFormatException, RemoteException{
 		
 		switch(args[1].toLowerCase()){
 		
