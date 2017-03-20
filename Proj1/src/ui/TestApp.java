@@ -1,6 +1,7 @@
 package ui;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
@@ -11,19 +12,26 @@ import peer.IPeer;
 
 public class TestApp {
 	
-	private IPeer peer;
+	private static IPeer peer;
 	
-	public void main(String args[]) throws MalformedURLException, RemoteException, NotBoundException{
+	public static void main(String args[]) throws MalformedURLException, RemoteException, NotBoundException{
 		
 		if(!validateArgs(args)){
+			try {
+				Thread.sleep(20000);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			return;
 		}
 		
 		callServer(args);
 		
+		
 	}
 	
-	private boolean validateArgs(String[] args) throws MalformedURLException, RemoteException, NotBoundException{
+	private static boolean validateArgs(String[] args) throws MalformedURLException, RemoteException, NotBoundException{
 
 		
 		if(args.length>4||args.length<2){
@@ -72,12 +80,13 @@ public class TestApp {
 		return true;
 	}
 	
-	private void callServer(String[] args) throws NumberFormatException, RemoteException{
+	private static void callServer(String[] args) throws NumberFormatException, RemoteException{		
+		
 		
 		switch(args[1].toLowerCase()){
 		
 			case "backup":{
-				peer.backup(new File(args[2]), Integer.parseInt(args[3]));
+				peer.backup(new File(args[2]).getAbsoluteFile(), Integer.parseInt(args[3]));
 				break;
 			}
 			case "restore":{

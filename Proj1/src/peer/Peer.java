@@ -20,23 +20,25 @@ import protocols.ChunkBackup;
 
 public class Peer extends UnicastRemoteObject  implements IPeer {
 
-	private int protocolVersion;
+	private static int protocolVersion;
 	private static int peerId;
-	private String remoteObject;
+	private static String remoteObject;
 	
 	private static InetAddress mcAddress, mdbAddress, mdrAddress;
-	private int mcPort;
+	private static int mcPort;
 	private static int mdbPort;
-	private int mdrPort;
+	private static int mdrPort;
 	
-	private MulticastSocket mc,mdb,mdr;
+	private static MulticastSocket mc;
+	private static MulticastSocket mdb;
+	private static MulticastSocket mdr;
 	
 	protected Peer() throws RemoteException {
 		super();
 		// TODO Auto-generated constructor stub
 	}
 
-	public void main(String[] args) throws UnknownHostException, RemoteException, MalformedURLException, AlreadyBoundException{
+	public static void main(String[] args) throws UnknownHostException, RemoteException, MalformedURLException, AlreadyBoundException{
 		
 		if(!validateArgs(args)){
 			return;
@@ -46,17 +48,17 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 		
 		Registry registry = LocateRegistry.getRegistry();
 		
-		IPeer iserver= (IPeer) UnicastRemoteObject.exportObject(peer, 0);
+		IPeer iserver= (IPeer) peer;
 		
-		registry.bind(remoteObject, iserver);
+		registry.rebind(remoteObject, iserver);		
 		
 		joinGroups();
 		
-		System.err.println("Server ready");
+		System.out.println("Server ready");
 		
 	}
 	
-	private boolean validateArgs(String[] args) throws UnknownHostException{
+	private static boolean validateArgs(String[] args) throws UnknownHostException{
 		
 		if(args.length!=9){
 			System.out.println("Usage: Peer <protocol version> <peerID> <service access point> <mc address> <mc port> <mdb address> <mdb port> <mdr address> <mdr port> ");
@@ -70,7 +72,7 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 		mcAddress=InetAddress.getByName(args[3]);
 		mcPort=Integer.parseInt(args[4]);
 		mdbAddress=InetAddress.getByName(args[5]);
-		mcPort=Integer.parseInt(args[6]);
+		mdbPort=Integer.parseInt(args[6]);
 		mdrAddress=InetAddress.getByName(args[7]);
 		mdrPort=Integer.parseInt(args[8]);
 		
@@ -78,23 +80,26 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 		
 	}
 	
-	private void joinGroups(){
+	private static void joinGroups(){
 		
 		try {
+			
 			mc = new MulticastSocket(mcPort);
 			mc.joinGroup(mcAddress);
-			Multicast mc1=new Multicast(mc);
-			mc1.run();
+			Runnable mc1=new Multicast(mc);
+			new Thread(mc1).start();
 			
 			mdb = new MulticastSocket(mdbPort);
 			mdb.joinGroup(mdbAddress);
-			MulticastBackup mc2=new MulticastBackup(mdb);
-			mc2.run();
+			Runnable mc2=new MulticastBackup(mdb);
+			new Thread(mc2).start();
 			
-			mdr = new MulticastSocket(mcPort);
-			mdr.joinGroup(mcAddress);
-			MulticastRestore mc3=new MulticastRestore(mdr);
-			mc3.run();			
+			mdr = new MulticastSocket(mdrPort);
+			mdr.joinGroup(mdrAddress);
+			Runnable mc3=new MulticastRestore(mdr);
+			new Thread(mc3).start();
+			
+			System.out.println("Added to all multicast groups");
 			
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -105,8 +110,8 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 
 	@Override
 	public void backup(File file, int replDeg) throws RemoteException {
-		new ChunkBackup(file,replDeg).run();
-		
+		Runnable run=new ChunkBackup(file,replDeg);
+		new Thread(run).start();
 	}
 
 	@Override
@@ -137,7 +142,7 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 		return peerId;
 	}
 
-	private void setPeerId(int peerId) {
+	private static void setPeerId(int peerId) {
 		Peer.peerId = peerId;
 	}
 	

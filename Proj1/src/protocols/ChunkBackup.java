@@ -4,6 +4,7 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.math.BigInteger;
 import java.net.DatagramPacket;
 import java.net.MulticastSocket;
 import java.security.MessageDigest;
@@ -28,6 +29,7 @@ public class ChunkBackup implements Runnable{
 		byte[] buffer = new byte[Constants.CHUNKSIZE];
 		
 		try {
+						
 			BufferedInputStream bufferInput = new BufferedInputStream(new FileInputStream(file));
 			
 			@SuppressWarnings("unused")
@@ -35,11 +37,12 @@ public class ChunkBackup implements Runnable{
 			
 			 while ((bytesRead = bufferInput.read(buffer)) > 0) {
 	             
-				 MessageDigest messageDigest = MessageDigest.getInstance("SHA-512");
+				 MessageDigest messageDigest = MessageDigest.getInstance("SHA-1");
 				 messageDigest.update((file.getName()+Long.toString(file.lastModified())).getBytes());
 				 String fileID = new String(messageDigest.digest());
+				 	
 				 
-	             Chunk chunk = new Chunk(fileID,chunkNo,buffer,replication);
+	             Chunk chunk = new Chunk(String.format("%040x", new BigInteger(1, fileID.getBytes())),chunkNo,buffer,replication);
 	             
 	             Message message = new Message(chunk);
 	    
@@ -55,7 +58,6 @@ public class ChunkBackup implements Runnable{
 	}
 
 	private void sendToMDB(byte[] buffer) throws IOException {
-		
 		DatagramPacket packet = new DatagramPacket(buffer, buffer.length, Peer.getMdbAddress(),Peer.getMdbPort());
 		MulticastSocket socket = new MulticastSocket();
 		socket.send(packet);
