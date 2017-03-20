@@ -22,7 +22,17 @@ public class Message {
 		message+= chunk.getReplication() + " ";
 		message+= Constants.CRLF + Constants.CRLF;
 		
-		return message.getBytes();		
+		byte[] buffer = concatBytes(message.getBytes(),chunk.getChunkData());
+		
+		return buffer;		
+	}
+	
+	private byte[] concatBytes(byte[] a, byte[] b){
+		byte[] buffer = new byte[a.length + b.length];
+		System.arraycopy(a, 0, buffer, 0, a.length);
+		System.arraycopy(b, 0, buffer, a.length, b.length);
+		
+		return buffer;
 	}
 
 }

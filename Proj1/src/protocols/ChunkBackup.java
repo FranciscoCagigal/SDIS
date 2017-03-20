@@ -43,7 +43,7 @@ public class ChunkBackup implements Runnable{
 	             
 	             Message message = new Message(chunk);
 	    
-	             sendToMDB(message.createPutChunk(),chunk.getChunkData());             
+	             sendToMDB(message.createPutChunk());             
 	             
 	            }
 			 
@@ -54,16 +54,15 @@ public class ChunkBackup implements Runnable{
 		}
 	}
 
-	private void sendToMDB(byte[] a, byte[] b) throws IOException {
-		byte[] buffer = new byte[a.length + b.length];
-		System.arraycopy(a, 0, buffer, 0, a.length);
-		System.arraycopy(b, 0, buffer, a.length, b.length);
+	private void sendToMDB(byte[] buffer) throws IOException {
 		
 		DatagramPacket packet = new DatagramPacket(buffer, buffer.length, Peer.getMdbAddress(),Peer.getMdbPort());
 		MulticastSocket socket = new MulticastSocket();
 		socket.send(packet);
 		socket.close();
 	}
+	
+	
 
 	public int getReplication() {
 		return replication;
