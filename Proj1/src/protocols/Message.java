@@ -1,6 +1,9 @@
 package protocols;
 
 import peer.Peer;
+
+import java.nio.charset.StandardCharsets;
+
 import fileManager.Chunk;
 
 public class Message {
@@ -23,6 +26,19 @@ public class Message {
 		message+= Constants.CRLF + Constants.CRLF;
 		
 		byte[] buffer = concatBytes(message.getBytes(),chunk.getChunkData());
+		
+		return buffer;		
+	}
+	
+	public byte[] createStored(){
+		
+		String message="STORED "+version + " ";
+		message+=Peer.getPeerId() + " " ;
+		message+= chunk.getFileId()+" ";
+		message+= chunk.getChunkNumber() + " ";
+		message+= Constants.CRLF + Constants.CRLF;
+		
+		byte[] buffer = message.getBytes(StandardCharsets.UTF_8);
 		
 		return buffer;		
 	}

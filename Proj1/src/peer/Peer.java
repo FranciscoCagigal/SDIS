@@ -7,11 +7,13 @@ import java.net.MalformedURLException;
 import java.net.MulticastSocket;
 import java.net.UnknownHostException;
 import java.rmi.AlreadyBoundException;
-import java.rmi.Naming;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 import listeners.Multicast;
 import listeners.MulticastBackup;
@@ -20,6 +22,10 @@ import protocols.ChunkBackup;
 
 public class Peer extends UnicastRemoteObject  implements IPeer {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	private static int protocolVersion;
 	private static int peerId;
 	private static String remoteObject;
@@ -32,6 +38,10 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 	private static MulticastSocket mc;
 	private static MulticastSocket mdb;
 	private static MulticastSocket mdr;
+	
+	static HashMap<String,Integer> backedUp = new HashMap<String,Integer>();
+	static private List <String> myChunks = new ArrayList<String>();
+	
 	
 	protected Peer() throws RemoteException {
 		super();
@@ -153,4 +163,25 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 	public static int getMdbPort(){
 		return mdbPort;
 	}
+	
+	public static InetAddress getMcAddress(){
+		return mcAddress;
+	}
+	
+	public static int getMcPort(){
+		return mcPort;
+	}
+	
+	public static void addToBackedUp(int i,String str){
+		backedUp.put(str, i);
+	}
+	
+	public static void addMyChunks(String id, String chunkNo){
+		myChunks.add(id+ " "+ chunkNo);
+	}
+	
+	public static boolean isMyChunk(String id, String chunkNo){
+		return myChunks.contains(id+ " "+ chunkNo);		
+	}
+	
 }

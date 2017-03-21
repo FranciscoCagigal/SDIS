@@ -24,8 +24,9 @@ public class Multicast implements Runnable {
 			DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
 			try {
 				socket.receive(packet);
-				String received= new String(buffer,0,buffer.length);
-				System.out.println(received);
+				
+				Runnable handler = new Handler(packet);
+				new Thread(handler).start();
 				
 			} catch (IOException e) {
 				// TODO Auto-generated catch block

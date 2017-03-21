@@ -27,23 +27,10 @@ public class MulticastBackup implements Runnable {
 			
 			DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
 			try {
-				socket.receive(packet);
-				String received= new String(buffer,0,buffer.length).trim();
-				String header =received.substring(0, received.indexOf(Constants.CRLF));
-				String body = received.substring(received.indexOf(Constants.CRLF)+2, received.length());   
+				socket.receive(packet);	
 				
-				String[] dividedHeader= header.split(" ");
-				
-				if(!isMyMessage(dividedHeader[2])){
-					
-					System.out.println(dividedHeader[3]);
-					
-					File file= new File("../Files/"+ dividedHeader[3] +"."+dividedHeader[4]);
-					file.createNewFile();
-					BufferedWriter out = new BufferedWriter(new FileWriter(file));
-					out.write(body);
-					out.close();
-				}
+				Runnable handler = new Handler(packet);
+				new Thread(handler).start();
 				
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
@@ -62,17 +49,6 @@ public class MulticastBackup implements Runnable {
 
 	private void setSocket(MulticastSocket socket) {
 		this.socket = socket;
-	}
-
-	private boolean isMyMessage(String id){
-		
-		
-		
-		if(Integer.parseInt(id)!=Peer.getPeerId()){
-			return false;
-		}
-		
-		return true;		
 	}
 
 }

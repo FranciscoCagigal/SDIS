@@ -9,6 +9,7 @@ import java.net.DatagramPacket;
 import java.net.MulticastSocket;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.HashMap;
 
 import fileManager.Chunk;
 import peer.Peer;
@@ -37,7 +38,7 @@ public class ChunkBackup implements Runnable{
 			
 			 while ((bytesRead = bufferInput.read(buffer)) > 0) {
 	             
-				 MessageDigest messageDigest = MessageDigest.getInstance("SHA-1");
+				 MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");
 				 messageDigest.update((file.getName()+Long.toString(file.lastModified())).getBytes());
 				 String fileID = new String(messageDigest.digest());
 				 	
@@ -46,7 +47,7 @@ public class ChunkBackup implements Runnable{
 	             
 	             Message message = new Message(chunk);
 	    
-	             sendToMDB(message.createPutChunk());             
+	             sendToMDB(message.createPutChunk());  
 	             
 	            }
 			 
