@@ -19,6 +19,7 @@ public class Message {
 	protected byte[] createPutChunk(){
 		
 		String message="PUTCHUNK "+version + " ";
+		//aqui não pode ter referencia ao peer
 		message+=Peer.getPeerId() + " " ;
 		message+= chunk.getFileId()+" ";
 		message+= chunk.getChunkNumber() + " ";
@@ -33,6 +34,7 @@ public class Message {
 	public byte[] createStored(){
 		
 		String message="STORED "+version + " ";
+		//aqui não pode ter referencia ao peer
 		message+=Peer.getPeerId() + " " ;
 		message+= chunk.getFileId()+" ";
 		message+= chunk.getChunkNumber() + " ";

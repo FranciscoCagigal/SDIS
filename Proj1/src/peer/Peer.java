@@ -39,10 +39,7 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 	private static MulticastSocket mdb;
 	private static MulticastSocket mdr;
 	
-	static HashMap<String,Integer> backedUp = new HashMap<String,Integer>();
-	static private List <String> myChunks = new ArrayList<String>();
-	
-	
+		
 	protected Peer() throws RemoteException {
 		super();
 		// TODO Auto-generated constructor stub
@@ -170,18 +167,6 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 	
 	public static int getMcPort(){
 		return mcPort;
-	}
-	
-	public static void addToBackedUp(int i,String str){
-		backedUp.put(str, i);
-	}
-	
-	public static void addMyChunks(String id, String chunkNo){
-		myChunks.add(id+ " "+ chunkNo);
-	}
-	
-	public static boolean isMyChunk(String id, String chunkNo){
-		return myChunks.contains(id+ " "+ chunkNo);		
 	}
 	
 }

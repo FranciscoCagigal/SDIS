@@ -37,7 +37,7 @@ public class Handler implements Runnable{
 				
 	}
 	
-	private boolean isMyMessage(String id){
+	private boolean isMyOwnMessage(String id){
 		
 		if(Integer.parseInt(id)!=Peer.getPeerId()){
 			return false;
@@ -46,8 +46,9 @@ public class Handler implements Runnable{
 		return true;		
 	}
 	
+	//To implement: Handling of already stored chunks
 	private void putChunkHandler(String []header){
-		if(!isMyMessage(header[2]) && !HandleFiles.fileExists(header[3]+"." + header[4])){
+		if(!isMyOwnMessage(header[2]) && !HandleFiles.fileExists(header[3]+"." + header[4])){
 			byte[] body=getBody();
 			
 			HandleFiles.writeFile(header[3]+"."+header[4], body);

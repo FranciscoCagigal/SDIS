@@ -9,7 +9,9 @@ import java.net.DatagramPacket;
 import java.net.MulticastSocket;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import fileManager.Chunk;
 import peer.Peer;
@@ -18,6 +20,9 @@ public class ChunkBackup implements Runnable{
 	
 	private File file;
 	private int replication;
+	
+	private HashMap<String,Integer> backedUp = new HashMap<String,Integer>();
+	private List <String> myChunks = new ArrayList<String>();
 	
 	public ChunkBackup(File f, int repl){		
 		file=f;
@@ -36,18 +41,22 @@ public class ChunkBackup implements Runnable{
 			@SuppressWarnings("unused")
 			int bytesRead;
 			
+			//to implement: Partition of file content into chunks 
+			
 			 while ((bytesRead = bufferInput.read(buffer)) > 0) {
 	             
 				 MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");
 				 messageDigest.update((file.getName()+Long.toString(file.lastModified())).getBytes());
-				 String fileID = new String(messageDigest.digest());
-				 	
+				 String fileIDbin = new String(messageDigest.digest());
+				 String fileID = String.format("%040x", new BigInteger(1, fileIDbin.getBytes()));
 				 
-	             Chunk chunk = new Chunk(String.format("%040x", new BigInteger(1, fileID.getBytes())),chunkNo,buffer,replication);
+	             Chunk chunk = new Chunk(fileID,chunkNo,buffer,replication);
 	             
 	             Message message = new Message(chunk);
 	    
-	             sendToMDB(message.createPutChunk());  
+	             sendToMDB(message.createPutChunk());
+	             
+	             addMyChunks(fileID, chunkNo);
 	             
 	            }
 			 
@@ -70,5 +79,16 @@ public class ChunkBackup implements Runnable{
 	public int getReplication() {
 		return replication;
 	}
+	
+	public void addMyChunks(String id, int chunkNo){
+		myChunks.add(id+ " "+ Integer.toString(chunkNo));
+	}
+	
+	public boolean isMyChunk(String id, int chunkNo){
+		return myChunks.contains(id+ " "+ Integer.toString(chunkNo));		
+	}
 
+	public void addToBackedUp(int i,String str){
+		backedUp.put(str, i);
+	}
 }
