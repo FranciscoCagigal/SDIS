@@ -39,9 +39,22 @@ public class Message {
 		return buffer;	
 	}
 	
+	public byte[] createGetChunk(){
+		String message="STORED "+version + " ";
+		message+=Peer.getPeerId() + " " ;
+		message+= chunk.getFileId()+" ";
+		message+= chunk.getChunkNumber() + " ";
+		message+= Constants.CRLF + Constants.CRLF;
+		
+		byte[] buffer = message.getBytes(StandardCharsets.UTF_8);
+		
+		return buffer;	
+	}
+	
 	protected byte[] createPutChunk(){
 		
 		String message="PUTCHUNK "+version + " ";
+		//aqui não pode ter referencia ao peer  //porque nao? tem de ter o id do initiator peer
 		message+=Peer.getPeerId() + " " ;
 		message+= chunk.getFileId()+" ";
 		message+= chunk.getChunkNumber() + " ";
@@ -56,6 +69,7 @@ public class Message {
 	public byte[] createStored(){
 		
 		String message="STORED "+version + " ";
+		//aqui não pode ter referencia ao peer
 		message+=Peer.getPeerId() + " " ;
 		message+= chunk.getFileId()+" ";
 		message+= chunk.getChunkNumber() + " ";
@@ -64,18 +78,6 @@ public class Message {
 		byte[] buffer = message.getBytes(StandardCharsets.UTF_8);
 		
 		return buffer;		
-	}
-	
-	public byte[] createGetChunk(){
-		String message="STORED "+version + " ";
-		message+=Peer.getPeerId() + " " ;
-		message+= chunk.getFileId()+" ";
-		message+= chunk.getChunkNumber() + " ";
-		message+= Constants.CRLF + Constants.CRLF;
-		
-		byte[] buffer = message.getBytes(StandardCharsets.UTF_8);
-		
-		return buffer;	
 	}
 	
 	private byte[] concatBytes(byte[] a, byte[] b){
