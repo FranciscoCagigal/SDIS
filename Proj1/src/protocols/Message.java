@@ -16,10 +16,45 @@ public class Message {
 		chunk=chunk1;
 	}
 	
+	protected byte[] createDelete(){
+		String message="DELETE "+version + " ";
+		message+=Peer.getPeerId() + " " ;
+		message+= chunk.getFileId()+" ";
+		message+= Constants.CRLF + Constants.CRLF;
+		
+		byte[] buffer = message.getBytes(StandardCharsets.UTF_8);
+		
+		return buffer;
+	}
+	
+	protected byte[] createChunk(){
+		String message="CHUNK "+version + " ";
+		message+=Peer.getPeerId() + " " ;
+		message+= chunk.getFileId()+" ";
+		message+= chunk.getChunkNumber() + " ";
+		message+= Constants.CRLF + Constants.CRLF;
+		
+		byte[] buffer = concatBytes(message.getBytes(),chunk.getChunkData());
+		
+		return buffer;	
+	}
+	
+	public byte[] createGetChunk(){
+		String message="STORED "+version + " ";
+		message+=Peer.getPeerId() + " " ;
+		message+= chunk.getFileId()+" ";
+		message+= chunk.getChunkNumber() + " ";
+		message+= Constants.CRLF + Constants.CRLF;
+		
+		byte[] buffer = message.getBytes(StandardCharsets.UTF_8);
+		
+		return buffer;	
+	}
+	
 	protected byte[] createPutChunk(){
 		
 		String message="PUTCHUNK "+version + " ";
-		//aqui não pode ter referencia ao peer
+		//aqui não pode ter referencia ao peer  //porque nao? tem de ter o id do initiator peer
 		message+=Peer.getPeerId() + " " ;
 		message+= chunk.getFileId()+" ";
 		message+= chunk.getChunkNumber() + " ";
