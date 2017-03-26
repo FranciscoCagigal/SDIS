@@ -1,14 +1,8 @@
 package listeners;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.MulticastSocket;
-
-import peer.Peer;
-import protocols.Constants;
 
 public class MulticastBackup implements Runnable {
 
