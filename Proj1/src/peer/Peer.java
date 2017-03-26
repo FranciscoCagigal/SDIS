@@ -15,16 +15,16 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import fileManager.Chunk;
 import listeners.Multicast;
 import listeners.MulticastBackup;
 import listeners.MulticastRestore;
 import protocols.ChunkBackup;
+import protocols.ChunkRestore;
+import protocols.FileDeletion;
 
 public class Peer extends UnicastRemoteObject  implements IPeer {
 
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 1L;
 	private static int protocolVersion;
 	private static int peerId;
@@ -39,10 +39,14 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 	private static MulticastSocket mdb;
 	private static MulticastSocket mdr;
 	
-		
+	private static HashMap<Chunk,List<String>> backedUp = new HashMap<Chunk,List<String>>();
+	private static List<Chunk>stored = new ArrayList<Chunk>();
+	private static HashMap<String,String> hashTranslations = new HashMap<String,String>();
+	
+	private static Runnable mc1,mc2,mc3;
+	
 	protected Peer() throws RemoteException {
 		super();
-		// TODO Auto-generated constructor stub
 	}
 
 	public static void main(String[] args) throws UnknownHostException, RemoteException, MalformedURLException, AlreadyBoundException{
@@ -93,18 +97,20 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 			
 			mc = new MulticastSocket(mcPort);
 			mc.joinGroup(mcAddress);
-			Runnable mc1=new Multicast(mc);
+			mc1=new Multicast(mc);
 			new Thread(mc1).start();
 			
 			mdb = new MulticastSocket(mdbPort);
 			mdb.joinGroup(mdbAddress);
-			Runnable mc2=new MulticastBackup(mdb);
+			mc2=new MulticastBackup(mdb);
 			new Thread(mc2).start();
 			
 			mdr = new MulticastSocket(mdrPort);
 			mdr.joinGroup(mdrAddress);
-			Runnable mc3=new MulticastRestore(mdr);
+			mc3=new MulticastRestore(mdr);
 			new Thread(mc3).start();
+			
+			
 			
 			System.out.println("Added to all multicast groups");
 			
@@ -122,15 +128,15 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 	}
 
 	@Override
-	public void restore(File file) throws RemoteException{
-		// TODO Auto-generated method stub
-		
+	public void restore(String filename) throws RemoteException{
+		Runnable run=new ChunkRestore(filename);
+		new Thread(run).start();		
 	}
 
 	@Override
-	public void delete(File file) throws RemoteException{
-		// TODO Auto-generated method stub
-		
+	public void delete(String filename) throws RemoteException{
+		Runnable run=new FileDeletion(filename);
+		new Thread(run).start();
 	}
 
 	@Override
@@ -169,4 +175,39 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 		return mcPort;
 	}
 	
+	public static void addBackup(Chunk chunk, String peerId){
+		if(peerId==null){
+			List<String> peerList = new ArrayList<String>();
+			backedUp.put(chunk,peerList);
+		}else{
+			List<String> peerList =backedUp.get(chunk);
+			peerList.add(peerId);
+			backedUp.replace(chunk, peerList);
+		}
+		
+	}
+	
+	public static boolean isMyChunk(Chunk chunk){
+		return backedUp.containsKey(chunk);
+	}
+	
+	public static int getNumberOfPeers(Chunk chunk){
+		return backedUp.get(chunk).size();
+	}
+	
+	public static void addChunk(Chunk chunk){
+		stored.add(chunk);
+	}
+	
+	public static void addToTranslations(String filename, String hash){
+		hashTranslations.put(filename, hash);
+	}
+	
+	public static String getHashTranslation(String filename){
+		return hashTranslations.get(filename);
+	}
+	
+	public static Runnable getMDRlistener(){
+		return mc3;
+	}
 }
