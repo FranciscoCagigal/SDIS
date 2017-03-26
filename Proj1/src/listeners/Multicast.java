@@ -2,14 +2,12 @@ package listeners;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
-import java.net.InetAddress;
 import java.net.MulticastSocket;
+import java.util.Observable;
 
 public class Multicast implements Runnable {
 
 	private MulticastSocket socket;
-	private int mcPort;
-	private InetAddress mcAddress;
 	
 	public Multicast(MulticastSocket mc){
 		setSocket(mc);

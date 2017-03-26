@@ -1,7 +1,6 @@
 package ui;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.MalformedURLException;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
@@ -90,11 +89,11 @@ public class TestApp {
 				break;
 			}
 			case "restore":{
-				peer.restore(new File(args[2]));
+				peer.restore(new File(args[2]).getAbsoluteFile().getName());
 				break;
 			}
 			case "delete":{
-				peer.delete(new File(args[2]));
+				peer.delete(new File(args[2]).getAbsoluteFile().getName());
 				break;
 			}
 			case "reclaim":{

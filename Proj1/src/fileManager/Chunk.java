@@ -1,5 +1,6 @@
 package fileManager;
 
+
 public class Chunk {
 	private String fileId;
 	private int chunkNo;
@@ -27,6 +28,25 @@ public class Chunk {
 
 	public int getReplication() {
 		return replication;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Chunk other = (Chunk) obj;
+		if (chunkNo != other.chunkNo)
+			return false;
+		if (fileId == null) {
+			if (other.fileId != null)
+				return false;
+		} else if (!fileId.equals(other.fileId))
+			return false;
+		return true;
 	}
 
 }

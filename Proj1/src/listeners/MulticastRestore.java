@@ -3,8 +3,9 @@ package listeners;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.MulticastSocket;
+import java.util.Observable;
 
-public class MulticastRestore implements Runnable {
+public class MulticastRestore extends Observable implements Runnable {
 
 	private MulticastSocket socket;
 	

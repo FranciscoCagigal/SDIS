@@ -1,6 +1,7 @@
 package listeners;
 
 
+import java.io.File;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.MulticastSocket;
@@ -25,16 +26,41 @@ public class Handler implements Runnable{
 	@Override
 	public void run() {
 		
-		System.out.println("oi");
 		String header[] = getHeader();
-		chunk = new Chunk(header[3],Integer.parseInt(header[4]),null,Integer.parseInt(header[5]));
-		switch(header[0]){
-			case "PUTCHUNK": putChunkHandler(header);
+		
+		switch(header[0].toUpperCase()){
+			case "PUTCHUNK": 
+				chunk = new Chunk(header[3],Integer.parseInt(header[4]),null,Integer.parseInt(header[5]));
+				putChunkHandler(header);
 				break;
-			
+			case "STORED" : 
+				storedChunk(header);
+				break;
+			case "GETCHUNK": 
+				getChunk(header);
+				break;
+			case "DELETE":
+				deleteChunks(header);
+				break;
 			default:
 		}
 				
+	}
+	
+	private void deleteChunks(String[] header){
+		int counter = 1;
+		while(true){
+			if(HandleFiles.fileExists(header[3]+"."+counter)){
+				HandleFiles.eraseFile(header[3]+"."+counter);
+			}else break;
+		}
+	}
+	
+	private void getChunk(String[] header){
+		if(HandleFiles.fileExists(header[3]+"."+header[4])){
+			Chunk chunk = new Chunk(header[3],Integer.parseInt(header[4]),HandleFiles.readFile(header[3]+"."+header[4]),0);
+			
+		}
 	}
 	
 	private boolean isMyMessage(String id){
@@ -47,10 +73,13 @@ public class Handler implements Runnable{
 	}
 	
 	private void putChunkHandler(String []header){
-		if(!isMyMessage(header[2]) && !HandleFiles.fileExists(header[3]+"." + header[4])){
-			byte[] body=getBody();
+		if(!isMyMessage(header[2])){
+			if(!HandleFiles.fileExists(header[3]+"." + header[4])){
+				byte[] body=getBody();
+				HandleFiles.writeFile(header[3]+"."+header[4], body);
+				Peer.addChunk(chunk);
+			}
 			
-			HandleFiles.writeFile(header[3]+"."+header[4], body);
 			Message message = new Message(chunk);
 			
 			Random rnd = new Random();
@@ -64,6 +93,12 @@ public class Handler implements Runnable{
 		}
 	}
 	
+	private void storedChunk(String []header){
+		if(Peer.isMyChunk(chunk)){		
+			Peer.addBackup(chunk, header[2]);
+		}//else ignore
+	}
+	
 	private void sendToCM(byte[] buffer) throws IOException{
 		DatagramPacket packet = new DatagramPacket(buffer, buffer.length, Peer.getMcAddress(),Peer.getMcPort());
 		MulticastSocket socket = new MulticastSocket();
@@ -71,8 +106,7 @@ public class Handler implements Runnable{
 		socket.close();
 	}
 	
-	private String[] getHeader(){
-		
+	private String[] getHeader(){		
 		String str = new String(packet.getData(), StandardCharsets.UTF_8);		
 		return str.substring(0, str.indexOf(Constants.CRLF)).split(" ");
 	}
