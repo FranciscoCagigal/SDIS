@@ -110,7 +110,7 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 			mc3=new MulticastRestore(mdr);
 			new Thread(mc3).start();
 			
-			
+			createDirs();
 			
 			System.out.println("Added to all multicast groups");
 			
@@ -119,6 +119,17 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 			e.printStackTrace();
 		}
 		
+	}
+	
+	private static void createDirs(){
+		File f = new File("../Files"+peerId);
+		if (!f.exists()) {
+			f.mkdir();
+		}
+		f = new File("../Chunks"+peerId);
+		if (!f.exists()) {
+			f.mkdir();
+		}
 	}
 
 	@Override
