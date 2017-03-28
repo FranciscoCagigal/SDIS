@@ -21,7 +21,7 @@ public class Message {
 		message+=Peer.getPeerId() + " " ;
 		message+= chunk.getFileId()+" ";
 		message+= Constants.CRLF + Constants.CRLF;
-		
+		System.out.println("vou enviar delete :"+message);
 		byte[] buffer = message.getBytes(StandardCharsets.UTF_8);
 		
 		return buffer;

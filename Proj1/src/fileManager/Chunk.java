@@ -1,5 +1,6 @@
 package fileManager;
 
+import java.util.Arrays;
 
 public class Chunk {
 	private String fileId;
@@ -28,6 +29,15 @@ public class Chunk {
 
 	public int getReplication() {
 		return replication;
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + chunkNo;
+		result = prime * result + ((fileId == null) ? 0 : fileId.hashCode());
+		return result;
 	}
 
 	@Override

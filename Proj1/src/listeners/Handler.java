@@ -26,13 +26,13 @@ public class Handler implements Runnable{
 	public void run() {
 		
 		String header[] = getHeader();
-		
 		switch(header[0].toUpperCase()){
 			case "PUTCHUNK": 
 				chunk = new Chunk(header[3],Integer.parseInt(header[4]),null,Integer.parseInt(header[5]));
 				putChunkHandler(header);
 				break;
 			case "STORED" : 
+				chunk = new Chunk(header[3],Integer.parseInt(header[4]),null,0);
 				storedChunk(header);
 				break;
 			case "GETCHUNK": 
@@ -49,8 +49,9 @@ public class Handler implements Runnable{
 	private void deleteChunks(String[] header){
 		int counter = 1;
 		while(true){
-			if(HandleFiles.fileExists(header[3]+"."+counter)){
-				HandleFiles.eraseFile(header[3]+"."+counter);
+			if(HandleFiles.fileExists("../Chunks"+Peer.getPeerId()+"/"+header[3]+"."+counter)){
+				HandleFiles.eraseFile("../Chunks"+Peer.getPeerId()+"/"+header[3]+"."+counter);
+				counter++;
 			}else break;
 		}
 	}
@@ -73,9 +74,10 @@ public class Handler implements Runnable{
 	
 	private void putChunkHandler(String []header){
 		if(!isMyMessage(header[2])){
-			if(!HandleFiles.fileExists(header[3]+"." + header[4])){
+			
+			if(!HandleFiles.fileExists("../Chunks"+Peer.getPeerId()+"/"+header[3]+"." + header[4])){
 				byte[] body=getBody();
-				HandleFiles.writeFile(header[3]+"."+header[4], body);
+				HandleFiles.writeFile("../Chunks"+Peer.getPeerId()+"/"+header[3]+"."+header[4], body);
 				Peer.addChunk(chunk);
 			}
 			
@@ -93,7 +95,7 @@ public class Handler implements Runnable{
 	}
 	
 	private void storedChunk(String []header){
-		if(Peer.isMyChunk(chunk)){		
+		if(Peer.isMyChunk(chunk)){
 			Peer.addBackup(chunk, header[2]);
 		}//else ignore
 	}

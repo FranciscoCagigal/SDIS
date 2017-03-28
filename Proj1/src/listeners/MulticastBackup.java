@@ -22,7 +22,7 @@ public class MulticastBackup implements Runnable {
 			DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
 			try {
 				socket.receive(packet);	
-				
+				System.out.println("recebi no backup");
 				Runnable handler = new Handler(packet);
 				new Thread(handler).start();
 				

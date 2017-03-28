@@ -16,12 +16,8 @@ public class TestApp {
 	public static void main(String args[]) throws MalformedURLException, RemoteException, NotBoundException{
 		
 		if(!validateArgs(args)){
-			try {
-				Thread.sleep(20000);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+				System.out.println("non valid args");
+
 			return;
 		}
 		
@@ -44,6 +40,7 @@ public class TestApp {
 		switch(args[1].toLowerCase()){
 		
 			case "backup":{
+				System.out.println("é backup");
 				File f = new File(args[2]);
 				if(args.length!=4 || !f.exists() || f.isDirectory()||!args[3].matches("^-?\\d+$"))
 					return false;

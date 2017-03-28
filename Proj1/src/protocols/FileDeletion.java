@@ -20,7 +20,8 @@ public class FileDeletion implements Runnable {
 	public void run() {
 		
 		//apagar o ficheiro local
-		HandleFiles.eraseFile(fileName);
+		HandleFiles.eraseFile("../Files"+Peer.getPeerId()+"/"+fileName);
+		System.out.println("../Files/"+Peer.getPeerId()+fileName);
 		
 		//apagar os chunks q estao backed up
 		Chunk chunk = new Chunk(hash,0,null,0);

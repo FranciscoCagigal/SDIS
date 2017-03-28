@@ -38,7 +38,7 @@ public class ChunkBackup implements Runnable{
 			MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");
 			messageDigest.update((file.getName()+Long.toString(file.lastModified())).getBytes());
 			String fileID = new String(messageDigest.digest());
-			Peer.addToTranslations(file.getName(), fileID);
+			Peer.addToTranslations(file.getName(), String.format("%040x", new BigInteger(1, fileID.getBytes())));
 			
 			@SuppressWarnings("unused")
 			int bytesRead;
