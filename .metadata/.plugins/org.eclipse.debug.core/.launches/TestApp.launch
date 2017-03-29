@@ -8,6 +8,6 @@
 </listAttribute>
 <booleanAttribute key="org.eclipse.jdt.launching.ATTR_USE_START_ON_FIRST_THREAD" value="true"/>
 <stringAttribute key="org.eclipse.jdt.launching.MAIN_TYPE" value="ui.TestApp"/>
-<stringAttribute key="org.eclipse.jdt.launching.PROGRAM_ARGUMENTS" value="Peer1 backup Files1/&quot;To Do&quot;.txt 3"/>
+<stringAttribute key="org.eclipse.jdt.launching.PROGRAM_ARGUMENTS" value="Peer1 backup Files1/&quot;Ola Test&quot;.txt 3"/>
 <stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="Proj1"/>
 </launchConfiguration>

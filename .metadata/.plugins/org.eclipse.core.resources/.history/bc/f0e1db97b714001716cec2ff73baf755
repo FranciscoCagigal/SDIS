@@ -1,0 +1,85 @@
+package protocols;
+
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.math.BigInteger;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+
+import fileManager.Chunk;
+import peer.Peer;
+
+public class ReadFile implements Runnable {
+
+	private File file;
+	private int replication;
+	
+	public ReadFile(File f, int replication) {
+		this.file = f;
+		this.replication = replication;
+	}
+	
+	public void run() {
+		
+		try {
+			
+			BufferedInputStream bufferInput = new BufferedInputStream(new FileInputStream(file));
+			MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");
+			messageDigest.update((file.getName()+Long.toString(file.lastModified())).getBytes());
+			String fileIDbin = new String(messageDigest.digest());
+			String fileID = String.format("%040x", new BigInteger(1, fileIDbin.getBytes()));
+			Peer.addToTranslations(file.getName(), fileID);
+			
+			int chunkNo = 1;
+			int fileSize = (int) file.length();
+			int chunkSize = Constants.CHUNKSIZE;
+			byte[] temporary = null;
+			  
+			int totalBytesRead = 0;
+			
+			while ( totalBytesRead < fileSize ) {
+				
+				int bytesRemaining = fileSize - totalBytesRead;
+			    if ( bytesRemaining < Constants.CHUNKSIZE) {
+			    	chunkSize = bytesRemaining;
+			    }
+			    temporary = new byte[chunkSize];
+			    int bytesRead = bufferInput.read(temporary, 0, chunkSize);
+			    
+			    Chunk chunk = new Chunk(fileID, chunkNo, temporary, replication);
+				Peer.addBackup(chunk,null);
+				
+				Runnable run=new ChunkBackup(chunk);
+				new Thread(run).start();
+			    
+			    if (bytesRead > 0) {
+			    	totalBytesRead += bytesRead;
+			    	chunkNo++;
+			    }
+			}
+
+			
+			/*
+			while ((bytesRead = bufferInput.read(buffer)) > 0) {
+				
+				Chunk chunk = new Chunk(fileID, chunkNo, buffer, replication);
+				Peer.addBackup(chunk,null);
+				
+				Runnable run=new ChunkBackup(chunk);
+				new Thread(run).start();
+				
+				chunkNo++;
+			}*/
+			
+			bufferInput.close();
+			
+		} catch (NoSuchAlgorithmException | IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+	}
+
+}

@@ -1,0 +1,76 @@
+package protocols;
+
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.math.BigInteger;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+
+import fileManager.Chunk;
+import peer.Peer;
+
+public class ReadFile implements Runnable {
+
+	private File file;
+	private int replication;
+	
+	public ReadFile(File f, int replication) {
+		this.file = f;
+		this.replication = replication;
+	}
+	
+	public void run() {
+		
+		int chunkNo = 1;
+		byte[] buffer = new byte[Constants.CHUNKSIZE];
+		
+		try {
+			
+			BufferedInputStream bufferInput = new BufferedInputStream(new FileInputStream(file));
+			MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");
+			messageDigest.update((file.getName()+Long.toString(file.lastModified())).getBytes());
+			String fileIDbin = new String(messageDigest.digest());
+			String fileID = String.format("%040x", new BigInteger(1, fileIDbin.getBytes()));
+			Peer.addToTranslations(file.getName(), fileID);
+			
+			@SuppressWarnings("unused")
+			int bytesRead;
+			int i = 1;
+			
+			while((bytesRead = bufferInput.read()) != -1) {
+				
+				buffer[i] = (byte) bytesRead;
+				if (i >= Constants.CHUNKSIZE || bufferInput.read() == -1) {
+					Chunk chunk = new Chunk(fileID, chunkNo, buffer, replication);
+					Peer.addBackup(chunk,null);
+					Runnable run=new ChunkBackup(chunk);
+					new Thread(run).start();
+					
+					i = 0;
+					chunkNo++;
+				}
+			}
+			/*
+			while ((bytesRead = bufferInput.read(buffer)) > 0) {
+				
+				Chunk chunk = new Chunk(fileID, chunkNo, buffer, replication);
+				Peer.addBackup(chunk,null);
+				
+				Runnable run=new ChunkBackup(chunk);
+				new Thread(run).start();
+				
+				chunkNo++;
+			}*/
+			
+			bufferInput.close();
+			
+		} catch (NoSuchAlgorithmException | IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+	}
+
+}

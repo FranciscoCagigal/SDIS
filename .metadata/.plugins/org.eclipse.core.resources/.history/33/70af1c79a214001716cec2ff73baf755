@@ -1,0 +1,16 @@
+package fileManager;
+
+import java.io.FileWriter;
+
+public class CsvHandler {
+
+	private Chunk chunk;
+	
+	public CsvHandler(Chunk chunk) {
+		this.chunk = chunk;
+		
+	}
+	
+	FileWriter fileWriter = null;
+
+}

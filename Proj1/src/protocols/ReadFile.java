@@ -23,9 +23,6 @@ public class ReadFile implements Runnable {
 	
 	public void run() {
 		
-		int chunkNo = 1;
-		byte[] buffer = new byte[Constants.CHUNKSIZE];
-		
 		try {
 			
 			BufferedInputStream bufferInput = new BufferedInputStream(new FileInputStream(file));
@@ -35,18 +32,32 @@ public class ReadFile implements Runnable {
 			String fileID = String.format("%040x", new BigInteger(1, fileIDbin.getBytes()));
 			Peer.addToTranslations(file.getName(), fileID);
 			
-			@SuppressWarnings("unused")
-			int bytesRead;
+			int chunkNo = 1;
+			int fileSize = (int) file.length();
+			int chunkSize = Constants.CHUNKSIZE;
+			byte[] temporary = null;
+			  
+			int totalBytesRead = 0;
 			
-			while ((bytesRead = bufferInput.read(buffer)) > 0) {
+			while ( totalBytesRead < fileSize ) {
 				
-				Chunk chunk = new Chunk(fileID, chunkNo, buffer, replication);
+				int bytesRemaining = fileSize - totalBytesRead;
+			    if ( bytesRemaining < Constants.CHUNKSIZE) {
+			    	chunkSize = bytesRemaining;
+			    }
+			    temporary = new byte[chunkSize];
+			    int bytesRead = bufferInput.read(temporary, 0, chunkSize);
+			    
+			    Chunk chunk = new Chunk(fileID, chunkNo, temporary, replication);
 				Peer.addBackup(chunk,null);
 				
 				Runnable run=new ChunkBackup(chunk);
 				new Thread(run).start();
-				
-				chunkNo++;
+			    
+			    if (bytesRead > 0) {
+			    	totalBytesRead += bytesRead;
+			    	chunkNo++;
+			    }
 			}
 			
 			bufferInput.close();
