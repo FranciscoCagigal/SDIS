@@ -40,8 +40,13 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 	private static MulticastSocket mdr;
 	
 	private static HashMap<Chunk,List<String>> backedUp = new HashMap<Chunk,List<String>>();
-	private static List<Chunk>stored = new ArrayList<Chunk>();
+	private static List<Chunk>stored = new ArrayList<Chunk>(); //retirar e fazer num ficheiro file id chunk, peers q o armazenaram e replication degree
 	private static HashMap<String,String> hashTranslations = new HashMap<String,String>();
+	
+	//restore
+	
+	private static HashMap<Chunk,Boolean>waitingToBeReceived = new HashMap<Chunk,Boolean>();
+	private static List<Chunk>waitingToBeSent = new ArrayList<Chunk>();
 	
 	private static Runnable mc1,mc2,mc3;
 	
@@ -130,6 +135,10 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 		if (!f.exists()) {
 			f.mkdir();
 		}
+		f = new File("../Restores"+peerId);
+		if (!f.exists()) {
+			f.mkdir();
+		}
 	}
 
 	@Override
@@ -186,6 +195,14 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 		return mcPort;
 	}
 	
+	public static InetAddress getMdrAddress(){
+		return mdrAddress;
+	}
+	
+	public static int getMdrPort(){
+		return mdrPort;
+	}
+	
 	public static void addBackup(Chunk chunk, String peerId){
 		if(peerId==null){
 			List<String> peerList = new ArrayList<String>();
@@ -197,6 +214,52 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 		}
 		
 	}
+	
+	//restore: initiator host
+	public static boolean askedForChunk(Chunk chunk){
+		return waitingToBeReceived.containsKey(chunk);
+	}
+	
+	public static boolean hasChunkBeenReceived(Chunk chunk){
+		return waitingToBeReceived.get(chunk);
+	}
+	
+	public static void wantReceivedChunk(Chunk chunk){
+		waitingToBeReceived.put(chunk,false);
+	}
+	
+	public static byte[] getDataFromReceivedChunk(Chunk chunk){
+		for(Chunk chunkReturned : waitingToBeReceived.keySet()){
+			System.out.println("Vou buscar: " + chunkReturned.getChunkData());
+			if(chunkReturned.equals(chunk))
+				return chunkReturned.getChunkData();
+		}		
+		return null;
+	}
+	
+	public static void addReceivedChunk(Chunk chunk){
+		System.out.println("Vou substiruir: " + chunk.getChunkData());
+		waitingToBeReceived.remove(chunk);
+		waitingToBeReceived.put(chunk,true);
+	}
+	
+	public static void removeReceivedChunk(Chunk chunk){
+		waitingToBeReceived.remove(chunk);
+	}
+	
+	//restore: other peers
+	public static boolean wasChunkAlreadySent(Chunk chunk){
+		return waitingToBeSent.contains(chunk);
+	}
+	
+	public static void askedToChangeChunk(Chunk chunk){
+		waitingToBeSent.add(chunk);
+	}
+	
+	public static void removeChunkSent(Chunk chunk){
+		waitingToBeSent.remove(chunk);
+	}
+	//end
 	
 	public static boolean isMyChunk(Chunk chunk){
 		return backedUp.containsKey(chunk);

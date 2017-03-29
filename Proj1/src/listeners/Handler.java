@@ -38,12 +38,25 @@ public class Handler implements Runnable{
 			case "GETCHUNK": 
 				getChunk(header);
 				break;
+			case "CHUNK": 
+				restoreChunks(header);
+				break;
 			case "DELETE":
 				deleteChunks(header);
 				break;
 			default:
 		}
 				
+	}
+	
+	private void restoreChunks(String[] header){
+		System.out.println("Fui chamado");
+		Chunk chunkRestored = new Chunk(header[3],Integer.parseInt(header[4]),getBody(),0);
+		if(Peer.askedForChunk(chunkRestored)){
+			System.out.println("adicionei e recebi");
+			Peer.addReceivedChunk(chunkRestored);
+		}
+		
 	}
 	
 	private void deleteChunks(String[] header){
@@ -57,9 +70,24 @@ public class Handler implements Runnable{
 	}
 	
 	private void getChunk(String[] header){
-		if(HandleFiles.fileExists(header[3]+"."+header[4])){
-			Chunk chunk = new Chunk(header[3],Integer.parseInt(header[4]),HandleFiles.readFile(header[3]+"."+header[4]),0);
-			
+		//System.out.println(header);
+		if(!isMyMessage(header[2]) && HandleFiles.fileExists("../Chunks"+Peer.getPeerId()+"/"+header[3]+"."+header[4])){
+			System.out.println("encontrei");
+			Chunk chunkRestored = new Chunk(header[3],Integer.parseInt(header[4]),HandleFiles.readFile("../Chunks"+Peer.getPeerId()+"/"+header[3]+"."+header[4]),0);
+			Message msg = new Message (chunkRestored);
+			try {
+				Random rnd = new Random();
+				Thread.sleep(rnd.nextInt(401));
+				if(!Peer.wasChunkAlreadySent(chunkRestored)){
+					System.out.println("Mandei pro MDR!!!!!!");
+					sendToMDR(msg.createChunk());
+					Peer.askedToChangeChunk(chunkRestored);
+				}
+				Peer.removeChunkSent(chunkRestored);				
+			} catch (IOException | InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 	}
 	
@@ -107,6 +135,13 @@ public class Handler implements Runnable{
 		socket.close();
 	}
 	
+	private void sendToMDR(byte[] buffer) throws IOException{
+		DatagramPacket packet = new DatagramPacket(buffer, buffer.length, Peer.getMdrAddress(),Peer.getMdrPort());
+		MulticastSocket socket = new MulticastSocket();		
+		socket.send(packet);
+		socket.close();
+	}
+	
 	private String[] getHeader(){		
 		String str = new String(packet.getData(), StandardCharsets.UTF_8);		
 		return str.substring(0, str.indexOf(Constants.CRLF)).split(" ");
@@ -114,7 +149,7 @@ public class Handler implements Runnable{
 	
 	private byte[] getBody(){
 		String str = new String(packet.getData(), StandardCharsets.UTF_8);
-		String body = str.substring(str.indexOf(Constants.CRLF)+2, str.length());
+		String body = str.substring(str.indexOf(Constants.CRLF)+4, str.length());
 		return body.getBytes(StandardCharsets.UTF_8);		
 	}
 	

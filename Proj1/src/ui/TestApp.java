@@ -40,7 +40,6 @@ public class TestApp {
 		switch(args[1].toLowerCase()){
 		
 			case "backup":{
-				System.out.println("é backup");
 				File f = new File(args[2]);
 				if(args.length!=4 || !f.exists() || f.isDirectory()||!args[3].matches("^-?\\d+$"))
 					return false;

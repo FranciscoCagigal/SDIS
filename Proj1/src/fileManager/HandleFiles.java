@@ -10,7 +10,7 @@ import protocols.Constants;
 
 public class HandleFiles {
 		
-	public static boolean fileExists(String path){	
+	public static boolean fileExists(String path){
 		File f = new File(path);
 		if(f.exists() && !f.isDirectory()) { 
 			return true;

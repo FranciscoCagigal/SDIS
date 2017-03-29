@@ -21,13 +21,12 @@ public class Message {
 		message+=Peer.getPeerId() + " " ;
 		message+= chunk.getFileId()+" ";
 		message+= Constants.CRLF + Constants.CRLF;
-		System.out.println("vou enviar delete :"+message);
 		byte[] buffer = message.getBytes(StandardCharsets.UTF_8);
 		
 		return buffer;
 	}
 	
-	protected byte[] createChunk(){
+	public byte[] createChunk(){
 		String message="CHUNK "+version + " ";
 		message+=Peer.getPeerId() + " " ;
 		message+= chunk.getFileId()+" ";
@@ -40,7 +39,7 @@ public class Message {
 	}
 	
 	public byte[] createGetChunk(){
-		String message="STORED "+version + " ";
+		String message="GETCHUNK "+version + " ";
 		message+=Peer.getPeerId() + " " ;
 		message+= chunk.getFileId()+" ";
 		message+= chunk.getChunkNumber() + " ";
@@ -80,7 +79,7 @@ public class Message {
 		return buffer;		
 	}
 	
-	private byte[] concatBytes(byte[] a, byte[] b){
+	public byte[] concatBytes(byte[] a, byte[] b){
 		byte[] buffer = new byte[a.length + b.length];
 		System.arraycopy(a, 0, buffer, 0, a.length);
 		System.arraycopy(b, 0, buffer, a.length, b.length);

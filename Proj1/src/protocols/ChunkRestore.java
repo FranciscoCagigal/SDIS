@@ -1,5 +1,7 @@
 package protocols;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.MulticastSocket;
@@ -9,13 +11,11 @@ import java.util.Observer;
 import fileManager.Chunk;
 import peer.Peer;
 
-public class ChunkRestore implements Runnable,Observer {
+public class ChunkRestore implements Runnable {
 	
 	private String fileName;
 	private int chunkNumber;
 	private String hash;
-	private boolean stored=false;
-	private String chunkString;
 	
 	public ChunkRestore(String filename){
 		fileName=filename;
@@ -30,15 +30,22 @@ public class ChunkRestore implements Runnable,Observer {
 		int counter=0;
 		while (counter<chunkNumber){
 			Chunk chunk = new Chunk(hash,counter+1,null,0);
+			Peer.wantReceivedChunk(chunk);
 			Message message = new Message(chunk);
 			try {
-				sendToMC(message.createGetChunk());
-				((Observable) Peer.getMDRlistener()).addObserver(this);
-				chunkString=hash+" "+counter+1;
-				while(!stored){
-					Thread.sleep(400);
+				System.out.println("chamei uma vez");
+				while(!Peer.hasChunkBeenReceived(chunk)){
 					sendToMC(message.createGetChunk());
+					Thread.sleep(1000);
 				}
+				System.out.println("recebi");
+				//teste
+				File file = new File("../Restores" + Peer.getPeerId()+"/"+fileName);
+				file.createNewFile();
+				FileOutputStream fos = new FileOutputStream(file,false);
+				fos.write(Peer.getDataFromReceivedChunk(chunk));
+				fos.close();
+				//end Teste
 				counter++;
 			} catch (IOException | InterruptedException e) {
 				// TODO Auto-generated catch block
@@ -64,16 +71,6 @@ public class ChunkRestore implements Runnable,Observer {
 			}
 			else break;			
 		}
-	}
-
-	@Override
-	public void update(Observable arg0, Object arg1) {
-		if(!arg0.equals(Peer.getMDRlistener()))
-			return;
-		String compareChunk = (String) arg1;
-		if(compareChunk.equals(chunkString)){
-			stored=true;
-		}		
 	}
 
 
