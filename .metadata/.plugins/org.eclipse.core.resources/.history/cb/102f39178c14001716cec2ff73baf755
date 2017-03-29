@@ -19,9 +19,9 @@ import fileManager.Chunk;
 import listeners.Multicast;
 import listeners.MulticastBackup;
 import listeners.MulticastRestore;
+import protocols.ChunkBackup;
 import protocols.ChunkRestore;
 import protocols.FileDeletion;
-import protocols.ReadFile;
 
 public class Peer extends UnicastRemoteObject  implements IPeer {
 
@@ -143,7 +143,7 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 
 	@Override
 	public void backup(File file, int replDeg) throws RemoteException {
-		Runnable run=new ReadFile(file,replDeg);
+		Runnable run=new ChunkBackup(file,replDeg);
 		new Thread(run).start();
 	}
 
