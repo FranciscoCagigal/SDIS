@@ -5,8 +5,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.MulticastSocket;
-import java.util.Observable;
-import java.util.Observer;
+import java.util.ArrayList;
+import java.util.List;
 
 import fileManager.Chunk;
 import peer.Peer;
@@ -16,6 +16,7 @@ public class ChunkRestore implements Runnable {
 	private String fileName;
 	private int chunkNumber;
 	private String hash;
+	private List<byte[]> chunkData = new ArrayList<byte[]>();
 	
 	public ChunkRestore(String filename){
 		fileName=filename;
@@ -28,7 +29,7 @@ public class ChunkRestore implements Runnable {
 		getNumberOfChunks();
 		
 		int counter=0;
-		while (counter<chunkNumber){
+		while (counter<chunkNumber-1){
 			Chunk chunk = new Chunk(hash,counter+1,null,0);
 			Peer.wantReceivedChunk(chunk);
 			Message message = new Message(chunk);
@@ -39,19 +40,33 @@ public class ChunkRestore implements Runnable {
 					Thread.sleep(1000);
 				}
 				System.out.println("recebi");
-				//teste
-				File file = new File("../Restores" + Peer.getPeerId()+"/"+fileName);
-				file.createNewFile();
-				FileOutputStream fos = new FileOutputStream(file,false);
-				fos.write(Peer.getDataFromReceivedChunk(chunk));
-				fos.close();
-				//end Teste
+				chunkData.add(Peer.getDataFromReceivedChunk(chunk));
+				Peer.removeReceivedChunk(chunk);
+				
 				counter++;
 			} catch (IOException | InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
+		
+		//teste
+		File file = new File("../Restores" + Peer.getPeerId()+"/"+fileName);
+		try {
+			file.createNewFile();
+			FileOutputStream fos = new FileOutputStream(file,false);
+			for(byte[] data: chunkData){
+				fos.write(new String(data).replaceAll("\0", "").getBytes());
+			}
+			
+			fos.close();
+			//end Teste
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		
 		
 		
 	}

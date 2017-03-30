@@ -23,6 +23,7 @@ import listeners.MulticastRestore;
 import protocols.ChunkRestore;
 import protocols.FileDeletion;
 import protocols.ReadFile;
+import protocols.SpaceReclaiming;
 
 public class Peer extends UnicastRemoteObject  implements IPeer {
 
@@ -44,11 +45,14 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 	private static List<Chunk>stored = new ArrayList<Chunk>(); //retirar e fazer num ficheiro file id chunk, peers q o armazenaram e replication degree
 	private static HashMap<String,String> hashTranslations = new HashMap<String,String>();
 	
-	//restore
-	
+	//restore	
 	private static HashMap<Chunk,Boolean>waitingToBeReceived = new HashMap<Chunk,Boolean>();
-	private static List<Chunk>waitingToBeSent = new ArrayList<Chunk>();
+	private static HashMap<Chunk,Boolean>waitingToBeSent = new HashMap<Chunk,Boolean>();
 	
+	//reclaim
+	private static int diskSpace;
+	
+	//threads
 	private static Runnable mc1,mc2,mc3;
 	
 	protected Peer() throws RemoteException {
@@ -162,8 +166,9 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 
 	@Override
 	public void reclaim(int space) throws RemoteException{
-		// TODO Auto-generated method stub
-		
+		diskSpace=space;
+		Runnable run=new SpaceReclaiming();
+		new Thread(run).start();
 	}
 
 	@Override
@@ -172,6 +177,14 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 		
 	}
 
+	public static boolean iHaveSpace(int space){
+		if(diskSpace==0)
+			return true;
+		else if(diskSpace>space)
+			return true;		
+		return false;
+	}
+	
 	public static int getPeerId() {
 		return peerId;
 	}
@@ -239,7 +252,6 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 	}
 	
 	public static void addReceivedChunk(Chunk chunk){
-		System.out.println("Vou substiruir: " + chunk.getChunkData());
 		waitingToBeReceived.remove(chunk);
 		waitingToBeReceived.put(chunk,true);
 	}
@@ -249,12 +261,22 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 	}
 	
 	//restore: other peers
-	public static boolean wasChunkAlreadySent(Chunk chunk){
-		return waitingToBeSent.contains(chunk);
+	
+	public static boolean iWantToSendChunk(Chunk chunk){
+		return waitingToBeSent.containsKey(chunk);
 	}
 	
-	public static void askedToChangeChunk(Chunk chunk){
-		waitingToBeSent.add(chunk);
+	public static boolean wasChunkAlreadySent(Chunk chunk){
+		return waitingToBeSent.get(chunk);
+	}
+	
+	public static void askedToSendChunk(Chunk chunk){
+		waitingToBeSent.put(chunk,false);
+	}
+	
+	public static void chunkTobeSentWasRcvd(Chunk chunk){
+		waitingToBeSent.remove(chunk);
+		waitingToBeSent.put(chunk,true);
 	}
 	
 	public static void removeChunkSent(Chunk chunk){

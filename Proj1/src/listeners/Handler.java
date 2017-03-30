@@ -50,11 +50,11 @@ public class Handler implements Runnable{
 	}
 	
 	private void restoreChunks(String[] header){
-		System.out.println("Fui chamado");
 		Chunk chunkRestored = new Chunk(header[3],Integer.parseInt(header[4]),getBody(),0);
 		if(Peer.askedForChunk(chunkRestored)){
-			System.out.println("adicionei e recebi");
 			Peer.addReceivedChunk(chunkRestored);
+		} else if(Peer.iWantToSendChunk(chunkRestored)){
+			Peer.chunkTobeSentWasRcvd(chunkRestored);
 		}
 		
 	}
@@ -75,13 +75,13 @@ public class Handler implements Runnable{
 			System.out.println("encontrei");
 			Chunk chunkRestored = new Chunk(header[3],Integer.parseInt(header[4]),HandleFiles.readFile("../Chunks"+Peer.getPeerId()+"/"+header[3]+"."+header[4]),0);
 			Message msg = new Message (chunkRestored);
+			Peer.askedToSendChunk(chunkRestored);
 			try {
 				Random rnd = new Random();
 				Thread.sleep(rnd.nextInt(401));
 				if(!Peer.wasChunkAlreadySent(chunkRestored)){
 					System.out.println("Mandei pro MDR!!!!!!");
 					sendToMDR(msg.createChunk());
-					Peer.askedToChangeChunk(chunkRestored);
 				}
 				Peer.removeChunkSent(chunkRestored);				
 			} catch (IOException | InterruptedException e) {
@@ -101,13 +101,13 @@ public class Handler implements Runnable{
 	}
 	
 	private void putChunkHandler(String []header){
-		//if(!isMyMessage(header[2])){
+		if(!isMyMessage(header[2])){
 			 
 			if(!HandleFiles.fileExists("../Chunks"+Peer.getPeerId()+"/"+header[3]+"." + header[4])){
 				byte[] body=getBody();
 				HandleFiles.writeFile("../Chunks"+Peer.getPeerId()+"/"+header[3]+"."+header[4], body);
 				Peer.addChunk(chunk);
-			//}
+			}
 			
 			Message message = new Message(chunk);
 			
