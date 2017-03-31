@@ -105,9 +105,11 @@ public class Handler implements Runnable{
 			 
 			if(!HandleFiles.fileExists("../Chunks"+Peer.getPeerId()+"/"+header[3]+"." + header[4])){
 				byte[] body=getBody();
-				HandleFiles.writeFile("../Chunks"+Peer.getPeerId()+"/"+header[3]+"."+header[4], body);
-				Peer.addChunk(chunk);
+				HandleFiles.writeFile("../Chunks"+Peer.getPeerId()+"/"+header[3]+"."+header[4], body);		
+				//Peer.addChunk(chunk);
 			}
+			
+			CsvHandler.updateChunkRepl(chunk,0);
 			
 			Message message = new Message(chunk);
 			
@@ -123,9 +125,11 @@ public class Handler implements Runnable{
 	}
 	
 	private void storedChunk(String []header){
-		if(Peer.isMyChunk(chunk)){
+		if(Peer.isMyChunk(chunk)){//preciso mudar esta condição
 			Peer.addBackup(chunk, header[2]);
-		}//else ignore
+		}else if(!isMyMessage(header[2])) {
+			CsvHandler.updateChunkRepl(chunk,1);
+		}
 	}
 	
 	private void sendToCM(byte[] buffer) throws IOException{

@@ -42,7 +42,6 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 	private static MulticastSocket mdr;
 	
 	private static HashMap<Chunk,List<String>> backedUp = new HashMap<Chunk,List<String>>();
-	private static List<Chunk>stored = new ArrayList<Chunk>(); //retirar e fazer num ficheiro file id chunk, peers q o armazenaram e replication degree
 	private static HashMap<String,String> hashTranslations = new HashMap<String,String>();
 	
 	//restore	
@@ -177,7 +176,7 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 		
 	}
 
-	public static boolean iHaveSpace(int space){
+	public static boolean iHaveSpace(long space){
 		if(diskSpace==0)
 			return true;
 		else if(diskSpace>space)
@@ -292,10 +291,9 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 		return backedUp.get(chunk).size();
 	}
 	
-	public static void addChunk(Chunk chunk){
-		stored.add(chunk);
+	/*public static void addChunk(Chunk chunk){
 		CsvHandler.addChunk(chunk);
-	}
+	}*/
 	
 	public static void addToTranslations(String filename, String hash){
 		hashTranslations.put(filename, hash);
