@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.MulticastSocket;
 import fileManager.Chunk;
+import fileManager.CsvHandler;
 import peer.Peer;
 
 public class ChunkBackup implements Runnable{
@@ -22,8 +23,8 @@ public class ChunkBackup implements Runnable{
 	public void run() {
 		
 		Message message = new Message(chunk);
-		while(numTries < 5 && Peer.getNumberOfPeers(chunk) < chunk.getReplication()){
-			
+		
+		while(numTries < 5 && CsvHandler.repliMyChunk(chunk) < chunk.getReplication()){
 			try {
 				
 				sendToMDB(message.createPutChunk());
@@ -36,7 +37,7 @@ public class ChunkBackup implements Runnable{
 			catch (InterruptedException | IOException e) {
 				e.printStackTrace();
 			}
-		}       
+		}  
 	}
 			 
 	private void sendToMDB(byte[] buffer) throws IOException {

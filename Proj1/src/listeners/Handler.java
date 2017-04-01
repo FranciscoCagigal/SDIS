@@ -72,7 +72,7 @@ public class Handler implements Runnable{
 	private void getChunk(String[] header){
 		//System.out.println(header);
 		if(!isMyMessage(header[2]) && HandleFiles.fileExists("../Chunks"+Peer.getPeerId()+"/"+header[3]+"."+header[4])){
-			System.out.println("encontrei");
+
 			Chunk chunkRestored = new Chunk(header[3],Integer.parseInt(header[4]),HandleFiles.readFile("../Chunks"+Peer.getPeerId()+"/"+header[3]+"."+header[4]),0);
 			Message msg = new Message (chunkRestored);
 			Peer.askedToSendChunk(chunkRestored);
@@ -106,7 +106,6 @@ public class Handler implements Runnable{
 			if(!HandleFiles.fileExists("../Chunks"+Peer.getPeerId()+"/"+header[3]+"." + header[4])){
 				byte[] body=getBody();
 				HandleFiles.writeFile("../Chunks"+Peer.getPeerId()+"/"+header[3]+"."+header[4], body);		
-				//Peer.addChunk(chunk);
 			}
 			
 			CsvHandler.updateChunkRepl(chunk,0);
@@ -125,8 +124,8 @@ public class Handler implements Runnable{
 	}
 	
 	private void storedChunk(String []header){
-		if(Peer.isMyChunk(chunk)){//preciso mudar esta condição
-			Peer.addBackup(chunk, header[2]);
+		if(CsvHandler.isMyChunk(chunk)){
+			CsvHandler.updateMyChunks(chunk, null, 1);
 		}else if(!isMyMessage(header[2])) {
 			CsvHandler.updateChunkRepl(chunk,1);
 		}

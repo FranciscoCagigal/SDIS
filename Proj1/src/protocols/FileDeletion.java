@@ -5,15 +5,18 @@ import java.net.DatagramPacket;
 import java.net.MulticastSocket;
 
 import fileManager.Chunk;
+import fileManager.CsvHandler;
 import fileManager.HandleFiles;
 import peer.Peer;
 
+
+//falta retirar os chunks dos ficheiros metadata
 public class FileDeletion implements Runnable {
 	private String fileName, hash;
 	
 	public FileDeletion(String filename){
 		fileName=filename;
-		hash =Peer.getHashTranslation(fileName);
+		hash =CsvHandler.getHash(fileName);
 	}
 
 	@Override
@@ -21,7 +24,6 @@ public class FileDeletion implements Runnable {
 		
 		//apagar o ficheiro local
 		HandleFiles.eraseFile("../Files"+Peer.getPeerId()+"/"+fileName);
-		System.out.println("../Files/"+Peer.getPeerId()+fileName);
 		
 		//apagar os chunks q estao backed up
 		Chunk chunk = new Chunk(hash,0,null,0);

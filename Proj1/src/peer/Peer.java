@@ -16,7 +16,6 @@ import java.util.HashMap;
 import java.util.List;
 
 import fileManager.Chunk;
-import fileManager.CsvHandler;
 import listeners.Multicast;
 import listeners.MulticastBackup;
 import listeners.MulticastRestore;
@@ -142,6 +141,24 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 		f = new File("../Restores"+peerId);
 		if (!f.exists()) {
 			f.mkdir();
+		}
+		
+		f = new File("../metadata"+peerId);
+		if (!f.exists()) {
+			f.mkdir();
+		}
+		
+		f = new File("../metadata"+peerId+"/ChunkList.csv");
+		if(!f.exists()){
+			try {
+				f.createNewFile();
+				f = new File("../metadata"+peerId+"/MyChunks.csv");
+				if(!f.exists())
+					f.createNewFile();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 	}
 

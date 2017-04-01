@@ -9,6 +9,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
 import fileManager.Chunk;
+import fileManager.CsvHandler;
 import peer.Peer;
 
 public class ReadFile implements Runnable {
@@ -49,8 +50,8 @@ public class ReadFile implements Runnable {
 			    int bytesRead = bufferInput.read(temporary, 0, chunkSize);
 			    
 			    Chunk chunk = new Chunk(fileID, chunkNo, temporary, replication);
-				Peer.addBackup(chunk,null);
-				
+				//Peer.addBackup(chunk,null);
+				CsvHandler.updateMyChunks(chunk,file.getName(),0);
 				Runnable run=new ChunkBackup(chunk);
 				new Thread(run).start();
 			    
