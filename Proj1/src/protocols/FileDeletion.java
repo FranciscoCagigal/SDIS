@@ -25,6 +25,9 @@ public class FileDeletion implements Runnable {
 		//apagar o ficheiro local
 		HandleFiles.eraseFile("../Files"+Peer.getPeerId()+"/"+fileName);
 		
+		//apagar os chunks da metadata
+		CsvHandler.deleteChunks(hash, "../metadata"+Peer.getPeerId()+"/MyChunks.csv");
+		
 		//apagar os chunks q estao backed up
 		Chunk chunk = new Chunk(hash,0,null,0);
 		Message message = new Message(chunk);

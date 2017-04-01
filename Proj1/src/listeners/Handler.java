@@ -61,6 +61,7 @@ public class Handler implements Runnable{
 	
 	private void deleteChunks(String[] header){
 		int counter = 1;
+		CsvHandler.deleteChunks(header[3], "../metadata"+Peer.getPeerId()+"/ChunkList.csv");
 		while(true){
 			if(HandleFiles.fileExists("../Chunks"+Peer.getPeerId()+"/"+header[3]+"."+counter)){
 				HandleFiles.eraseFile("../Chunks"+Peer.getPeerId()+"/"+header[3]+"."+counter);

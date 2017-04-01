@@ -43,6 +43,37 @@ public class CsvHandler {
 		}
 	}*/
 	
+	public synchronized static void deleteChunks(String fileId,String path){
+		File metaData = new File(path);
+		Scanner scanner;
+		
+		List<String> metaArray=new ArrayList<String>();
+		
+		try {
+			scanner = new Scanner(metaData);
+			scanner.useDelimiter(Constants.NEW_LINE_SEPARATOR);
+			while(scanner.hasNext()){
+				String str=scanner.next();
+				String[] divided = str.split(Constants.COMMA_DELIMITER);
+				if(!divided[0].equals(fileId)){
+					metaArray.add(str);
+				}
+	        }
+			
+			FileWriter fileWriter = new FileWriter(path);
+			for(String str: metaArray){
+				fileWriter.append(str);
+				fileWriter.append(Constants.NEW_LINE_SEPARATOR);
+			}
+				
+			fileWriter.close();
+			
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
 	public synchronized static String getHash(String name){
 		File metaData = new File("../metadata"+Peer.getPeerId()+"/MyChunks.csv");
 		Scanner scanner;
