@@ -8,6 +8,14 @@ public interface Constants {
 	
 	public static final String COMMA_DELIMITER = ";";
 	public static final String NEW_LINE_SEPARATOR = "\n";
+	
+	public static final String COMMAND_PUT = "PUTCHUNK";
+	public static final String COMMAND_STORED = "STORED";
+	public static final String COMMAND_GET = "GETCHUNK";
+	public static final String COMMAND_CHUNK = "CHUNK";
+	public static final String COMMAND_DELETE = "PUTCHUNK";
+	public static final String COMMAND_REMOVED = "REMOVED";
+	
 
 
 }
