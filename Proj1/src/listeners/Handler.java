@@ -44,6 +44,10 @@ public class Handler implements Runnable{
 			case "DELETE":
 				deleteChunks(header);
 				break;
+			case "REMOVED":
+				chunk = new Chunk(header[3],Integer.parseInt(header[4]),null,0);
+				removed(header);
+				break;
 			default:
 		}
 				
@@ -121,6 +125,14 @@ public class Handler implements Runnable{
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
+		}
+	}
+	
+	private void removed(String []header){
+		if(!isMyMessage(header[2])&&CsvHandler.isMyChunk(chunk)){
+			 if(CsvHandler.updateNegative(chunk)){
+				 
+			 }
 		}
 	}
 	

@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import fileManager.Chunk;
+import fileManager.CsvHandler;
 import peer.Peer;
 
 public class ChunkRestore implements Runnable {
@@ -21,7 +22,7 @@ public class ChunkRestore implements Runnable {
 	public ChunkRestore(String filename){
 		fileName=filename;
 		chunkNumber=1;
-		hash =Peer.getHashTranslation(fileName);
+		hash =CsvHandler.getHash(fileName);
 	}
 
 	@Override
@@ -81,7 +82,7 @@ public class ChunkRestore implements Runnable {
 	private void getNumberOfChunks(){
 		while(true){
 			Chunk chunk = new Chunk(hash,chunkNumber,null,0);
-			if(Peer.isMyChunk(chunk)){
+			if(CsvHandler.isMyChunk(chunk)){
 				chunkNumber++;
 			}
 			else break;			

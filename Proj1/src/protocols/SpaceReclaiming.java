@@ -1,9 +1,12 @@
 package protocols;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.util.Scanner;
+import java.io.IOException;
+import java.net.DatagramPacket;
+import java.net.MulticastSocket;
 
+import fileManager.Chunk;
+import fileManager.CsvHandler;
 import peer.Peer;
 
 public class SpaceReclaiming implements Runnable{
@@ -13,8 +16,25 @@ public class SpaceReclaiming implements Runnable{
 	@Override
 	public void run() {
 		long spaceUsed = directorySize();
-		if(!Peer.iHaveSpace(spaceUsed)){
-			
+		while(!Peer.iHaveSpace(spaceUsed)){
+			Chunk chunk;
+			if((chunk=CsvHandler.eliminateGoodChunk())!=null){
+				Message message = new Message(chunk);
+				try {
+					sendToMC(message.createRemoved());
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}else if((chunk=CsvHandler.eliminateGoodChunk())!=null){
+				Message message = new Message(chunk);
+				try {
+					sendToMC(message.createRemoved());
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
 		}
 	}
 	
@@ -27,22 +47,13 @@ public class SpaceReclaiming implements Runnable{
 	    }
 		return length;
 	}
-	
-	private void readCsv(){
-		File metaData = new File("../Chunks"+Peer.getPeerId()+"/ChunkList.csv");
-		
-		try {
-			Scanner scanner = new Scanner(metaData);
-			scanner.useDelimiter(Constants.NEW_LINE_SEPARATOR);
-			while(scanner.hasNext()){
-	            System.out.print(scanner.next()+"|");
-	        }
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+
+	private void sendToMC(byte[] buffer) throws IOException {
+		DatagramPacket packet = new DatagramPacket(buffer, buffer.length, Peer.getMcAddress(),Peer.getMcPort());
+		MulticastSocket socket = new MulticastSocket();
+		socket.send(packet);
+		socket.close();
 	}
-	
 
 	
 }

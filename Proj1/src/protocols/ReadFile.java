@@ -10,7 +10,6 @@ import java.security.NoSuchAlgorithmException;
 
 import fileManager.Chunk;
 import fileManager.CsvHandler;
-import peer.Peer;
 
 public class ReadFile implements Runnable {
 
@@ -31,7 +30,6 @@ public class ReadFile implements Runnable {
 			messageDigest.update((file.getName()+Long.toString(file.lastModified())).getBytes());
 			String fileIDbin = new String(messageDigest.digest());
 			String fileID = String.format("%040x", new BigInteger(1, fileIDbin.getBytes()));
-			Peer.addToTranslations(file.getName(), fileID);
 			
 			int chunkNo = 1;
 			int fileSize = (int) file.length();

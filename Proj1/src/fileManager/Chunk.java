@@ -1,7 +1,5 @@
 package fileManager;
 
-import java.util.Arrays;
-
 public class Chunk {
 	private String fileId;
 	private int chunkNo;

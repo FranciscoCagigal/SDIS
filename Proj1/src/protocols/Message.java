@@ -16,6 +16,16 @@ public class Message {
 		chunk=chunk1;
 	}
 	
+	protected byte[] createRemoved(){
+		String message="REMOVED "+version + " ";
+		message+=Peer.getPeerId() + " " ;
+		message+= chunk.getFileId()+" ";
+		message+= Constants.CRLF + Constants.CRLF;
+		byte[] buffer = message.getBytes(StandardCharsets.UTF_8);
+		
+		return buffer;
+	}
+	
 	protected byte[] createDelete(){
 		String message="DELETE "+version + " ";
 		message+=Peer.getPeerId() + " " ;

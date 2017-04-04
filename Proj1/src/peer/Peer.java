@@ -11,9 +11,7 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 
 import fileManager.Chunk;
 import listeners.Multicast;
@@ -39,9 +37,6 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 	private static MulticastSocket mc;
 	private static MulticastSocket mdb;
 	private static MulticastSocket mdr;
-	
-	private static HashMap<Chunk,List<String>> backedUp = new HashMap<Chunk,List<String>>();
-	private static HashMap<String,String> hashTranslations = new HashMap<String,String>();
 	
 	//restore	
 	private static HashMap<Chunk,Boolean>waitingToBeReceived = new HashMap<Chunk,Boolean>();
@@ -233,7 +228,7 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 		return mdrPort;
 	}
 	
-	public static void addBackup(Chunk chunk, String peerId){
+	/*public static void addBackup(Chunk chunk, String peerId){
 		if(peerId==null){
 			List<String> peerList = new ArrayList<String>();
 			backedUp.put(chunk,peerList);
@@ -243,7 +238,7 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 			backedUp.replace(chunk, peerList);
 		}
 		
-	}
+	}*/
 	
 	//restore: initiator host
 	public static boolean askedForChunk(Chunk chunk){
@@ -300,7 +295,7 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 	}
 	//end
 	
-	public static boolean isMyChunk(Chunk chunk){
+	/*public static boolean isMyChunk(Chunk chunk){
 		return backedUp.containsKey(chunk);
 	}
 	
@@ -308,9 +303,9 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 		return backedUp.get(chunk).size();
 	}
 	
-	/*public static void addChunk(Chunk chunk){
+	public static void addChunk(Chunk chunk){
 		CsvHandler.addChunk(chunk);
-	}*/
+	}
 	
 	public static void addToTranslations(String filename, String hash){
 		hashTranslations.put(filename, hash);
@@ -318,7 +313,7 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 	
 	public static String getHashTranslation(String filename){
 		return hashTranslations.get(filename);
-	}
+	}*/
 	
 	public static Runnable getMDRlistener(){
 		return mc3;
