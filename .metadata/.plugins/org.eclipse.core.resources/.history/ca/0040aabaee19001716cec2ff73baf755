@@ -10,14 +10,14 @@ public class Message {
 	
 	private Chunk chunk;
 	
-	private static String version="1.0";
+	private String version="1.0";
 	
 	public Message (Chunk chunk1){
 		chunk=chunk1;
 	}
 	
 	protected byte[] createRemoved(){
-		String message=Constants.COMMAND_REMOVED+" "+version + " ";
+		String message="REMOVED "+version + " ";
 		message+=Peer.getPeerId() + " " ;
 		message+= chunk.getFileId()+" ";
 		message+= Constants.CRLF + Constants.CRLF;
@@ -27,7 +27,7 @@ public class Message {
 	}
 	
 	protected byte[] createDelete(){
-		String message=Constants.COMMAND_DELETE+" "+version + " ";
+		String message="DELETE "+version + " ";
 		message+=Peer.getPeerId() + " " ;
 		message+= chunk.getFileId()+" ";
 		message+= Constants.CRLF + Constants.CRLF;
@@ -37,7 +37,7 @@ public class Message {
 	}
 	
 	public byte[] createChunk(){
-		String message=Constants.COMMAND_CHUNK+" "+version + " ";
+		String message="CHUNK "+version + " ";
 		message+=Peer.getPeerId() + " " ;
 		message+= chunk.getFileId()+" ";
 		message+= chunk.getChunkNumber() + " ";
@@ -49,7 +49,7 @@ public class Message {
 	}
 	
 	public byte[] createGetChunk(){
-		String message=Constants.COMMAND_GET+" "+version + " ";
+		String message="GETCHUNK "+version + " ";
 		message+=Peer.getPeerId() + " " ;
 		message+= chunk.getFileId()+" ";
 		message+= chunk.getChunkNumber() + " ";
@@ -62,7 +62,8 @@ public class Message {
 	
 	protected byte[] createPutChunk(){
 		
-		String message = Constants.COMMAND_PUT+ " " + version + " ";
+		String message="PUTCHUNK "+version + " ";
+		//aqui não pode ter referencia ao peer  //porque nao? tem de ter o id do initiator peer
 		message+=Peer.getPeerId() + " " ;
 		message+= chunk.getFileId()+" ";
 		message+= chunk.getChunkNumber() + " ";
@@ -76,7 +77,8 @@ public class Message {
 	
 	public byte[] createStored(){
 		
-		String message=Constants.COMMAND_STORED+" "+version + " ";
+		String message="STORED "+version + " ";
+		//aqui não pode ter referencia ao peer
 		message+=Peer.getPeerId() + " " ;
 		message+= chunk.getFileId()+" ";
 		message+= chunk.getChunkNumber() + " ";
@@ -94,11 +96,5 @@ public class Message {
 		
 		return buffer;
 	}
-	
-	public static String getVersion() {
-		return version;
-	}
 
 }
-
-

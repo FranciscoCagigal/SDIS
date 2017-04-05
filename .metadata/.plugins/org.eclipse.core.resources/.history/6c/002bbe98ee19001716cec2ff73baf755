@@ -33,23 +33,7 @@ public class ReadFile implements Runnable {
 			
 			int chunkNo = 1;
 			int fileSize = (int) file.length();
-			
-			int headerSize = Constants.COMMAND_PUT.length() + 1;
-			headerSize += Message.getVersion().length() + 1;
-			headerSize += fileID.length() + 1;
-			if (replication < 10 && replication > 0) {
-				headerSize += 2;
-			}
-			else if (replication > 100 && replication < 1000) {
-				headerSize += 3;
-			}
-			else {
-				headerSize += 4;
-			}
-			headerSize+=2*(Constants.CRLF.length());
-			
-			int chunkSize = Constants.CHUNKSIZE - headerSize;
-			
+			int chunkSize = Constants.CHUNKSIZE;
 			byte[] temporary = null;
 			  
 			int totalBytesRead = 0;
