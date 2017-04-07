@@ -178,7 +178,7 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 
 	@Override
 	public void reclaim(int space) throws RemoteException{
-		diskSpace=space;
+		diskSpace=space*1000;
 		Runnable run=new SpaceReclaiming();
 		new Thread(run).start();
 	}

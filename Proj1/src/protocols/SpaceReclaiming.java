@@ -15,8 +15,8 @@ public class SpaceReclaiming implements Runnable{
 
 	@Override
 	public void run() {
-		long spaceUsed = directorySize();
-		while(!Peer.iHaveSpace(spaceUsed)){
+		
+		while(!Peer.iHaveSpace(directorySize())){
 			Chunk chunk;
 			if((chunk=CsvHandler.eliminateGoodChunk())!=null){
 				Message message = new Message(chunk);

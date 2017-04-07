@@ -33,39 +33,21 @@ public class ReadFile implements Runnable {
 			
 			int chunkNo = 1;
 			int fileSize = (int) file.length();
-			
-			int headerSize = Constants.COMMAND_PUT.length() + 1;
-			headerSize += Message.getVersion().length() + 1;
-			headerSize += fileID.length() + 1;
-			if (replication < 10 && replication > 0) {
-				headerSize += 2;
-			}
-			else if (replication > 100 && replication < 1000) {
-				headerSize += 3;
-			}
-			else {
-				headerSize += 4;
-			}
-			headerSize+=2*(Constants.CRLF.length());
-			
-			int chunkSize = Constants.CHUNKSIZE - headerSize;
-			
-			byte[] temporary = null;
 			  
 			int totalBytesRead = 0;
 			
 			while ( totalBytesRead < fileSize ) {
 				
-				int bytesRemaining = fileSize - totalBytesRead;
-			    if ( bytesRemaining < Constants.CHUNKSIZE) {
-			    	chunkSize = bytesRemaining;
-			    }
-			    temporary = new byte[chunkSize];
-			    int bytesRead = bufferInput.read(temporary, 0, chunkSize);
-			    
-			    Chunk chunk = new Chunk(fileID, chunkNo, temporary, replication);
-				//Peer.addBackup(chunk,null);
+				Chunk chunk = new Chunk(fileID, chunkNo, null, replication);
+				
+				Message message = new Message(chunk);
+				byte[] msgbytes = message.createPutChunk();
+			    byte[] body = new byte[Constants.CHUNKSIZE-msgbytes.length];
+			    int bytesRead = bufferInput.read(body, 0, body.length);
+			    chunk.setbody(body);
+			
 				CsvHandler.updateMyChunks(chunk,file.getName(),0);
+				
 				Runnable run=new ChunkBackup(chunk);
 				new Thread(run).start();
 			    

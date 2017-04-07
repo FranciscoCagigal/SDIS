@@ -69,9 +69,7 @@ public class Message {
 		message+= chunk.getReplication() + " ";
 		message+= Constants.CRLF + Constants.CRLF;
 		
-		byte[] buffer = concatBytes(message.getBytes(),chunk.getChunkData());
-		
-		return buffer;		
+		return message.getBytes(StandardCharsets.UTF_8);		
 	}
 	
 	public byte[] createStored(){
@@ -87,7 +85,7 @@ public class Message {
 		return buffer;		
 	}
 	
-	public byte[] concatBytes(byte[] a, byte[] b){
+	public static byte[] concatBytes(byte[] a, byte[] b){
 		byte[] buffer = new byte[a.length + b.length];
 		System.arraycopy(a, 0, buffer, 0, a.length);
 		System.arraycopy(b, 0, buffer, a.length, b.length);

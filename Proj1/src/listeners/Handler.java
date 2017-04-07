@@ -1,6 +1,7 @@
 package listeners;
 
 
+import java.io.File;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.MulticastSocket;
@@ -75,7 +76,6 @@ public class Handler implements Runnable{
 	}
 	
 	private void getChunk(String[] header){
-		//System.out.println(header);
 		if(!isMyMessage(header[2]) && HandleFiles.fileExists("../Chunks"+Peer.getPeerId()+"/"+header[3]+"."+header[4])){
 
 			Chunk chunkRestored = new Chunk(header[3],Integer.parseInt(header[4]),HandleFiles.readFile("../Chunks"+Peer.getPeerId()+"/"+header[3]+"."+header[4]),0);
@@ -105,16 +105,27 @@ public class Handler implements Runnable{
 		return true;		
 	}
 	
+	private long directorySize(){
+		long length = 0;
+		File directory = new File("../Chunks"+Peer.getPeerId());
+		for (File file : directory.listFiles()) {
+	        if (file.isFile())
+	            length += file.length();
+	    }
+		return length;
+	}
+	
 	private void putChunkHandler(String []header){
-		if(!isMyMessage(header[2])){
-			 
+		byte[] body=getBody();
+		if(CsvHandler.isMyChunk(chunk)){
+			CsvHandler.updateMyChunks(chunk,null,0);
+		}
+		else if(Peer.iHaveSpace(directorySize()+(long)body.length)){
 			if(!HandleFiles.fileExists("../Chunks"+Peer.getPeerId()+"/"+header[3]+"." + header[4])){
-				byte[] body=getBody();
+				
 				HandleFiles.writeFile("../Chunks"+Peer.getPeerId()+"/"+header[3]+"."+header[4], body);		
 			}
-			
 			CsvHandler.updateChunkRepl(chunk,0);
-			
 			Message message = new Message(chunk);
 			
 			Random rnd = new Random();
