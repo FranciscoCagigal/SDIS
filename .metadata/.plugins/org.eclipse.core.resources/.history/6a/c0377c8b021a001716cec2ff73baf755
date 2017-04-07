@@ -1,0 +1,50 @@
+package protocols;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.Scanner;
+
+import peer.Peer;
+
+public class ServiceState {
+
+	public synchronized void getServiceState() {
+		
+		File metaDataInit = new File("../metadata"+Peer.getPeerId()+"/MyChunks.csv");
+		File metaDataStored = new File("../metadata"+Peer.getPeerId()+"/ChunkList.csv");
+		
+		System.out.println(" -- SERVICE STATE -- ");
+		System.out.println();
+		System.out.println("This Peer ("+Peer.getPeerId()+")has initiated the backup of the following chunks:");
+		
+		int counter = 1;
+		String nextChunk;
+		String lastChunk = null;
+		Scanner scannerInit;
+		try {
+			scannerInit = new Scanner(metaDataInit);
+			scannerInit.useDelimiter(Constants.NEW_LINE_SEPARATOR);
+			while(scannerInit.hasNext()){
+				String str=scannerInit.next();
+				String[] divided = str.split(Constants.COMMA_DELIMITER);
+				nextChunk = divided[0];
+				if (nextChunk != lastChunk){
+					System.out.println("  ----------  ");
+					System.out.println("File "+counter+":");
+					
+					System.out.println("Name:" + divided[4]);
+					System.out.println("Backup-ID: "+divided[0]);
+					System.out.println("Backup-ID: "+divided[0]);
+					
+					System.out.println();
+					counter++;
+				}
+				lastChunk = divided[0];
+				
+			}
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+}

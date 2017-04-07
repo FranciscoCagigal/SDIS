@@ -20,7 +20,6 @@ import listeners.MulticastRestore;
 import protocols.ChunkRestore;
 import protocols.FileDeletion;
 import protocols.ReadFile;
-import protocols.ServiceState;
 import protocols.SpaceReclaiming;
 
 public class Peer extends UnicastRemoteObject  implements IPeer {
@@ -186,7 +185,6 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 	@Override
 	public void state() throws RemoteException{
 		// TODO Auto-generated method stub
-		ServiceState.getServiceState();
 		
 	}
 

@@ -7,4 +7,9 @@
 <fullyQualifiedTypeName name="java.util.TimerTask"/>
 <fullyQualifiedTypeName name="java.util.Timer"/>
 <fullyQualifiedTypeName name="java.io.File"/>
+<fullyQualifiedTypeName name="protocols.ReadFile"/>
+<fullyQualifiedTypeName name="java.io.FileWriter"/>
+<fullyQualifiedTypeName name="fileManager.CsvHandler"/>
+<fullyQualifiedTypeName name="protocols.Constants"/>
+<fullyQualifiedTypeName name="protocols.ServiceState"/>
 </qualifiedTypeNameHistroy>

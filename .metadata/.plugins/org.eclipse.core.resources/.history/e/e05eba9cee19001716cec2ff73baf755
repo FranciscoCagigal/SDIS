@@ -27,24 +27,24 @@ public class Handler implements Runnable{
 		
 		String header[] = getHeader();
 		switch(header[0].toUpperCase()){
-			case Constants.COMMAND_PUT: 
+			case "PUTCHUNK": 
 				chunk = new Chunk(header[3],Integer.parseInt(header[4]),null,Integer.parseInt(header[5]));
 				putChunkHandler(header);
 				break;
-			case Constants.COMMAND_STORED: 
+			case "STORED" : 
 				chunk = new Chunk(header[3],Integer.parseInt(header[4]),null,0);
 				storedChunk(header);
 				break;
-			case Constants.COMMAND_GET: 
+			case "GETCHUNK": 
 				getChunk(header);
 				break;
-			case Constants.COMMAND_CHUNK: 
+			case "CHUNK": 
 				restoreChunks(header);
 				break;
-			case Constants.COMMAND_DELETE:
+			case "DELETE":
 				deleteChunks(header);
 				break;
-			case Constants.COMMAND_REMOVED:
+			case "REMOVED":
 				chunk = new Chunk(header[3],Integer.parseInt(header[4]),null,0);
 				removed(header);
 				break;
@@ -129,23 +129,10 @@ public class Handler implements Runnable{
 	}
 	
 	private void removed(String []header){
-		if(!isMyMessage(header[2])){
-			int repl=0;
-			if(CsvHandler.isMyChunk(chunk)){
-				CsvHandler.updateNegative(chunk,"../metadata"+Peer.getPeerId()+"/MyChunks.csv");
-			}
-			else if(HandleFiles.fileExists("../Chunks"+Peer.getPeerId()+"/"+header[3]+"."+header[4])){
-				repl=CsvHandler.updateNegative(chunk,"../metadata"+Peer.getPeerId()+"/ChunkList.csv");
-				chunk.setReplication(repl);
-				chunk.setbody(HandleFiles.readFile("../Chunks"+Peer.getPeerId()+"/"+header[3]+"."+header[4]));
-				Message message = new Message(chunk);
-				try {
-					sendToMDB(message.createPutChunk());
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
+		if(!isMyMessage(header[2])&&CsvHandler.isMyChunk(chunk)){
+			 if(CsvHandler.updateNegative(chunk)){
+				 
+			 }
 		}
 	}
 	
@@ -165,13 +152,6 @@ public class Handler implements Runnable{
 	}
 	
 	private void sendToMDR(byte[] buffer) throws IOException{
-		DatagramPacket packet = new DatagramPacket(buffer, buffer.length, Peer.getMdrAddress(),Peer.getMdrPort());
-		MulticastSocket socket = new MulticastSocket();		
-		socket.send(packet);
-		socket.close();
-	}
-	
-	private void sendToMDB(byte[] buffer) throws IOException{
 		DatagramPacket packet = new DatagramPacket(buffer, buffer.length, Peer.getMdrAddress(),Peer.getMdrPort());
 		MulticastSocket socket = new MulticastSocket();		
 		socket.send(packet);
