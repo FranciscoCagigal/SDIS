@@ -60,7 +60,7 @@ public class Message {
 		return buffer;	
 	}
 	
-	protected byte[] createPutChunk(){
+	public byte[] createPutChunk(){
 		
 		String message="PUTCHUNK "+version + " ";
 		//aqui não pode ter referencia ao peer  //porque nao? tem de ter o id do initiator peer

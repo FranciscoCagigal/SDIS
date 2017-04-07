@@ -74,12 +74,11 @@ public class CsvHandler {
 		}
 	}
 	
-	public synchronized static Boolean updateNegative(Chunk chunk){
-		File metaData = new File("../metadata"+Peer.getPeerId()+"/MyChunks.csv");
+	public synchronized static int updateNegative(Chunk chunk, String path){
+		File metaData = new File(path);
 		Scanner scanner;		
-		List<String> metaArray=new ArrayList<String>();		
-		Boolean badRepl = false;
-		
+		List<String> metaArray=new ArrayList<String>();	
+		int replicationDegree=0;
 		try {
 			scanner = new Scanner(metaData);
 			scanner.useDelimiter(Constants.NEW_LINE_SEPARATOR);
@@ -89,12 +88,12 @@ public class CsvHandler {
 				if(Integer.parseInt(divided[1])==chunk.getChunkNumber() && divided[0].equals(chunk.getFileId())){				
 					metaArray.add(divided[0]+Constants.COMMA_DELIMITER+divided[1]+Constants.COMMA_DELIMITER+divided[2]+Constants.COMMA_DELIMITER+(Integer.parseInt(divided[3])-1)+Constants.COMMA_DELIMITER+divided[4]+Constants.COMMA_DELIMITER);
 					if(Integer.parseInt(divided[3])-1<Integer.parseInt(divided[2])){
-						badRepl=true;
+						replicationDegree=Integer.parseInt(divided[2]);
 					}
 				}else metaArray.add(str);
 	        }
 			
-			FileWriter fileWriter = new FileWriter("../metadata"+Peer.getPeerId()+"/MyChunks.csv", false);
+			FileWriter fileWriter = new FileWriter(path, false);
 			for(String str: metaArray){
 				fileWriter.append(str);
 				fileWriter.append(Constants.NEW_LINE_SEPARATOR);
@@ -107,7 +106,7 @@ public class CsvHandler {
 			e.printStackTrace();
 		}
 		
-		return badRepl;
+		return replicationDegree;
 	}
 	
 	public synchronized static String getHash(String name){

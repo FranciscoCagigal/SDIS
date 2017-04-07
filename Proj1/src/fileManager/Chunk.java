@@ -28,6 +28,14 @@ public class Chunk {
 	public int getReplication() {
 		return replication;
 	}
+	
+	public void setReplication(int repl){
+		replication=repl;
+	}
+	
+	public void setbody(byte[] body){
+		data=body;
+	}
 
 	@Override
 	public int hashCode() {

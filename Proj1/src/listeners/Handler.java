@@ -129,10 +129,23 @@ public class Handler implements Runnable{
 	}
 	
 	private void removed(String []header){
-		if(!isMyMessage(header[2])&&CsvHandler.isMyChunk(chunk)){
-			 if(CsvHandler.updateNegative(chunk)){
-				 
-			 }
+		if(!isMyMessage(header[2])){
+			int repl=0;
+			if(CsvHandler.isMyChunk(chunk)){
+				CsvHandler.updateNegative(chunk,"../metadata"+Peer.getPeerId()+"/MyChunks.csv");
+			}
+			else if(HandleFiles.fileExists("../Chunks"+Peer.getPeerId()+"/"+header[3]+"."+header[4])){
+				repl=CsvHandler.updateNegative(chunk,"../metadata"+Peer.getPeerId()+"/ChunkList.csv");
+				chunk.setReplication(repl);
+				chunk.setbody(HandleFiles.readFile("../Chunks"+Peer.getPeerId()+"/"+header[3]+"."+header[4]));
+				Message message = new Message(chunk);
+				try {
+					sendToMDB(message.createPutChunk());
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
 		}
 	}
 	
@@ -152,6 +165,13 @@ public class Handler implements Runnable{
 	}
 	
 	private void sendToMDR(byte[] buffer) throws IOException{
+		DatagramPacket packet = new DatagramPacket(buffer, buffer.length, Peer.getMdrAddress(),Peer.getMdrPort());
+		MulticastSocket socket = new MulticastSocket();		
+		socket.send(packet);
+		socket.close();
+	}
+	
+	private void sendToMDB(byte[] buffer) throws IOException{
 		DatagramPacket packet = new DatagramPacket(buffer, buffer.length, Peer.getMdrAddress(),Peer.getMdrPort());
 		MulticastSocket socket = new MulticastSocket();		
 		socket.send(packet);
