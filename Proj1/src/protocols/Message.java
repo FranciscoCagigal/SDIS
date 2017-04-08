@@ -37,19 +37,24 @@ public class Message {
 	}
 	
 	public byte[] createChunk(){
-		String message=Constants.COMMAND_CHUNK+" "+Peer.getVersion() + " ";
+		
+		String message=Constants.COMMAND_CHUNK+" "+version + " ";
 		message+=Peer.getPeerId() + " " ;
 		message+= chunk.getFileId()+" ";
 		message+= chunk.getChunkNumber() + " ";
 		message+= Constants.CRLF + Constants.CRLF;
 		
-		byte[] buffer = concatBytes(message.getBytes(),chunk.getChunkData());
+		if(version.equals("1.0")){
+			byte[] buffer = concatBytes(message.getBytes(),chunk.getChunkData());		
+			return buffer;	
+		}else return message.getBytes(StandardCharsets.UTF_8);
 		
-		return buffer;	
+		
+		
 	}
 	
 	public byte[] createGetChunk(){
-		String message=Constants.COMMAND_GET+" "+Peer.getVersion() + " ";
+		String message=Constants.COMMAND_GET+" "+version + " ";
 		message+=Peer.getPeerId() + " " ;
 		message+= chunk.getFileId()+" ";
 		message+= chunk.getChunkNumber() + " ";

@@ -169,8 +169,8 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 	}
 
 	@Override
-	public void restore(String filename) throws RemoteException{
-		Runnable run=new ChunkRestore(filename);
+	public void restore(String version,String filename) throws RemoteException{
+		Runnable run=new ChunkRestore(version,filename);
 		new Thread(run).start();		
 	}
 

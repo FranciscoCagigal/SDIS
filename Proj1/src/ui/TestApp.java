@@ -57,6 +57,12 @@ public class TestApp {
 				}
 				break;
 			}
+			case "restoreenh":{
+				if(args.length!=3){
+					return false;
+				}
+				break;
+			}
 			case "delete":{
 				if(args.length!=3){
 					return false;
@@ -95,7 +101,11 @@ public class TestApp {
 				break;
 			}
 			case "restore":{
-				peer.restore(new File(args[2]).getAbsoluteFile().getName());
+				peer.restore("1.0",new File(args[2]).getAbsoluteFile().getName());
+				break;
+			}
+			case "restoreenh":{
+				peer.restore("2.0",new File(args[2]).getAbsoluteFile().getName());
 				break;
 			}
 			case "delete":{

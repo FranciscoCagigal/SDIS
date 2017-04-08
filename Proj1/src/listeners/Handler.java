@@ -4,6 +4,7 @@ package listeners;
 import java.io.File;
 import java.io.IOException;
 import java.net.DatagramPacket;
+import java.net.DatagramSocket;
 import java.net.MulticastSocket;
 import java.nio.charset.StandardCharsets;
 import java.util.Random;
@@ -79,14 +80,20 @@ public class Handler implements Runnable{
 		if(!isMyMessage(header[2]) && HandleFiles.fileExists("../Chunks"+Peer.getPeerId()+"/"+header[3]+"."+header[4])){
 
 			Chunk chunkRestored = new Chunk(header[3],Integer.parseInt(header[4]),HandleFiles.readFile("../Chunks"+Peer.getPeerId()+"/"+header[3]+"."+header[4]),0);
-			Message msg = new Message (chunkRestored,Peer.getVersion());
+			Message msg = new Message (chunkRestored,header[1]);
 			Peer.askedToSendChunk(chunkRestored);
 			try {
 				Random rnd = new Random();
 				Thread.sleep(rnd.nextInt(401));
 				if(!Peer.wasChunkAlreadySent(chunkRestored)){
-					System.out.println("Mandei pro MDR!!!!!!");
 					sendToMDR(msg.createChunk());
+					if(header[1].equals("2.0")){
+						DatagramSocket tcpSocket = new DatagramSocket();
+						byte data[] = HandleFiles.readFile("../Chunks"+Peer.getPeerId()+"/"+header[3]+"."+header[4]);
+						DatagramPacket p = new DatagramPacket(data, data.length, packet.getAddress(), 4004);
+						tcpSocket.send(p);
+						tcpSocket.close();
+					}
 				}
 				Peer.removeChunkSent(chunkRestored);				
 			} catch (IOException | InterruptedException e) {
