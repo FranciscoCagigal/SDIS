@@ -82,7 +82,7 @@ public class ChunkRestore implements Runnable {
 	private void getNumberOfChunks(){
 		while(true){
 			Chunk chunk = new Chunk(hash,chunkNumber,null,0);
-			if(CsvHandler.isMyChunk(chunk)){
+			if(CsvHandler.isMyChunk(chunk,"../metadata"+Peer.getPeerId()+"/MyChunks.csv")){
 				chunkNumber++;
 			}
 			else break;			

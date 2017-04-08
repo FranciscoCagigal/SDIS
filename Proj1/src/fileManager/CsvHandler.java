@@ -13,36 +13,6 @@ import protocols.Constants;
 
 public class CsvHandler {
 	
-	/*
-	public static void cont(Chunk chunk){
-		File metaData = new File("../Chunks"+Peer.getPeerId()+"/ChunkList.csv");
-		Scanner scanner;
-		List<String> metaArray=new ArrayList<String>();
-		
-		try {
-			scanner = new Scanner(metaData);
-			scanner.useDelimiter(Constants.NEW_LINE_SEPARATOR);
-			while(scanner.hasNext()){
-				String str=scanner.next();
-				String[] divided = str.split(Constants.COMMA_DELIMITER);
-				if(Integer.parseInt(divided[1])==chunk.getChunkNumber() && divided[0]==chunk.getFileId()){				
-					metaArray.add(divided[0]+Constants.COMMA_DELIMITER+divided[1]+Constants.COMMA_DELIMITER+divided[2]+Constants.COMMA_DELIMITER+0+Constants.COMMA_DELIMITER);
-				}
-	        }
-			
-			FileWriter fileWriter = new FileWriter("Chunks2/ChunkList.csv", false);
-			for(String str: metaArray){
-				fileWriter.append(str);
-				fileWriter.append(Constants.NEW_LINE_SEPARATOR);
-			}
-			
-			fileWriter.close();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}*/
-	
 	public synchronized static void deleteChunks(String fileId,String path){
 		File metaData = new File(path);
 		Scanner scanner;
@@ -154,8 +124,8 @@ public class CsvHandler {
 		return 0;
 	}
 	
-	public synchronized static boolean isMyChunk(Chunk chunk){
-		File metaData = new File("../metadata"+Peer.getPeerId()+"/MyChunks.csv");
+	public synchronized static boolean isMyChunk(Chunk chunk,String path){
+		File metaData = new File(path);
 		Scanner scanner;
 		Boolean iHaveChunk = false;
 		try {
@@ -313,7 +283,6 @@ public class CsvHandler {
 		return chunk;
 	}
 
-	//update =0 for reset  || update = 1 for adding 1
 	public synchronized static void updateChunkRepl(Chunk chunk,int update,int count){
 		
 		File metaData = new File("../metadata"+Peer.getPeerId()+"/ChunkList.csv");
@@ -358,7 +327,7 @@ public class CsvHandler {
 				fileWriter.append(Constants.COMMA_DELIMITER);
 				fileWriter.append(Integer.toString(chunk.getReplication()));
 				fileWriter.append(Constants.COMMA_DELIMITER);
-				fileWriter.append(Integer.toString(1));
+				fileWriter.append(Integer.toString(count));
 				fileWriter.append(Constants.COMMA_DELIMITER);
 				fileWriter.append(Constants.NEW_LINE_SEPARATOR);
 				
@@ -371,40 +340,4 @@ public class CsvHandler {
 		}
 		
 	}
-	
-	/*public static void addChunk(Chunk chunk) {
-		
-		FileWriter fileWriter = null;
-		
-		
-		try {
-			fileWriter = new FileWriter("../Chunks"+Peer.getPeerId()+"/ChunkList.csv", true);
-			
-			fileWriter.append(chunk.getFileId());
-			fileWriter.append(Constants.COMMA_DELIMITER);
-			fileWriter.append(Integer.toString(chunk.getChunkNumber()));
-			fileWriter.append(Constants.COMMA_DELIMITER);
-			fileWriter.append(Integer.toString(chunk.getReplication()));
-			fileWriter.append(Constants.COMMA_DELIMITER);
-			//fileWriter.append(Integer.toString(Peer.getNumberOfPeers(chunk)));
-			fileWriter.append(Constants.NEW_LINE_SEPARATOR);
-
-		} 
-		
-		catch (IOException e) {
-			e.printStackTrace();
-		}
-		
-		finally {
-			
-			try {
-				fileWriter.flush();
-				fileWriter.close();
-			}
-			
-			catch (IOException e){
-				e.printStackTrace();
-			}
-		}	
-	}*/
 }

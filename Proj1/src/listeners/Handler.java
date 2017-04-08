@@ -116,9 +116,11 @@ public class Handler implements Runnable{
 	}
 	
 	private void putChunkHandler(String []header){
+		System.out.println("entrei aqui: " +header[0]);
 		byte[] body=getBody();
-		if(header[0].equals("1.0")){
-			if(CsvHandler.isMyChunk(chunk)){
+		if(header[1].equals("1.0")){
+			System.out.println("entrei aqui");
+			if(CsvHandler.isMyChunk(chunk,"../metadata"+Peer.getPeerId()+"/MyChunks.csv")){
 				CsvHandler.updateMyChunks(chunk,null,0);
 			}
 			else if(Peer.iHaveSpace(directorySize()+(long)body.length)){
@@ -126,8 +128,8 @@ public class Handler implements Runnable{
 					
 					HandleFiles.writeFile("../Chunks"+Peer.getPeerId()+"/"+header[3]+"."+header[4], body);		
 				}
-				CsvHandler.updateChunkRepl(chunk,0,0);
-				Message message = new Message(chunk,Peer.getVersion());
+				CsvHandler.updateChunkRepl(chunk,0,1);
+				Message message = new Message(chunk,header[1]);
 				
 				Random rnd = new Random();
 				try {
@@ -138,19 +140,30 @@ public class Handler implements Runnable{
 					e.printStackTrace();
 				}
 			}
-		} else if(header[0].equals("2.0")){
-			if(CsvHandler.isMyChunk(chunk)){
+		} else if(header[1].equals("2.0")){
+			if(CsvHandler.isMyChunk(chunk,"../metadata"+Peer.getPeerId()+"/MyChunks.csv")){
 				CsvHandler.updateMyChunks(chunk,null,0);
 			}else if(Peer.iHaveSpace(directorySize()+(long)body.length)){
 				Peer.addToBackupEnhancement(header[3]+"."+header[4]);
 				Random rnd = new Random();
 				try {
 					Thread.sleep(rnd.nextInt(401));
-					if(Peer.getBackupEnhancement(header[3]+"."+header[4])<Integer.parseInt(header[5])){
-						Message message = new Message(chunk,header[0]);
+					int repl;
+					if((repl=Peer.getBackupEnhancement(header[3]+"."+header[4]))<Integer.parseInt(header[5])){
+						Peer.removeBackupEnhancement(header[3]+"."+header[4]);
+						Message message = new Message(chunk,header[1]);
 						sendToCM(message.createStored());
-						CsvHandler.updateChunkRepl(chunk,2,Peer.getBackupEnhancement(header[3]+"."+header[4])+1);
+						System.out.println("vou guardar - " + chunk.getChunkNumber() + " - "+ (repl+1));
+						CsvHandler.updateChunkRepl(chunk,2,repl+1);
+						if(!HandleFiles.fileExists("../Chunks"+Peer.getPeerId()+"/"+header[3]+"." + header[4])){							
+							HandleFiles.writeFile("../Chunks"+Peer.getPeerId()+"/"+header[3]+"."+header[4], body);		
+						}
 					}
+					if(Peer.containsBackupEnhancement(header[3]+"."+header[4])){
+						Peer.removeBackupEnhancement(header[3]+"."+header[4]);
+						System.out.println("removi - " + chunk.getChunkNumber());
+					}
+					
 				} catch (Exception e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -164,7 +177,7 @@ public class Handler implements Runnable{
 	private void removed(String []header){
 		if(!isMyMessage(header[2])){
 			int repl=0;
-			if(CsvHandler.isMyChunk(chunk)){
+			if(CsvHandler.isMyChunk(chunk,"../metadata"+Peer.getPeerId()+"/MyChunks.csv")){
 				CsvHandler.updateNegative(chunk,"../metadata"+Peer.getPeerId()+"/MyChunks.csv");
 			}
 			else if(HandleFiles.fileExists("../Chunks"+Peer.getPeerId()+"/"+header[3]+"."+header[4])){
@@ -183,17 +196,21 @@ public class Handler implements Runnable{
 	}
 	
 	private void storedChunk(String []header){
-		if(header[0].equals("1.0")){
-			if(CsvHandler.isMyChunk(chunk)){
+		if(header[1].equals("1.0")){
+			if(CsvHandler.isMyChunk(chunk,"../metadata"+Peer.getPeerId()+"/MyChunks.csv")){
 				CsvHandler.updateMyChunks(chunk, null, 1);
 			}else if(!isMyMessage(header[2])) {
-				CsvHandler.updateChunkRepl(chunk,1,0);
+				CsvHandler.updateChunkRepl(chunk,1,1);
 			}
-		}else if(header[0].equals("2.0")){
-			if(CsvHandler.isMyChunk(chunk)){
+		}else if(header[1].equals("2.0")){
+			if(CsvHandler.isMyChunk(chunk,"../metadata"+Peer.getPeerId()+"/MyChunks.csv")){
 				CsvHandler.updateMyChunks(chunk, null, 1);
-			}else if(Peer.containsBackupEnhancement(header[3]+"."+header[4])) {
+			}else if(Peer.containsBackupEnhancement(header[3]+"."+header[4])&&!isMyMessage(header[2])) {
+				System.out.println("vou adicionar 1 no - " + chunk.getChunkNumber());
 				Peer.changeBackupEnhancement(header[3]+"."+header[4]);
+			}else if(CsvHandler.isMyChunk(chunk,"../metadata"+Peer.getPeerId()+"/ChunkList.csv")&&!isMyMessage(header[2])){
+				System.out.println("Entrei aqui - " + chunk.getChunkNumber());
+				CsvHandler.updateChunkRepl(chunk,1,1);
 			}
 		}
 	}

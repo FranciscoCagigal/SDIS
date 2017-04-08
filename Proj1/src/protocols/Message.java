@@ -74,7 +74,7 @@ public class Message {
 	
 	public byte[] createStored(){
 		
-		String message=Constants.COMMAND_STORED+" "+Peer.getVersion() + " ";
+		String message=Constants.COMMAND_STORED+" "+version + " ";
 		message+=Peer.getPeerId() + " " ;
 		message+= chunk.getFileId()+" ";
 		message+= chunk.getChunkNumber() + " ";
