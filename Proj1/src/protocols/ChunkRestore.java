@@ -33,7 +33,7 @@ public class ChunkRestore implements Runnable {
 		while (counter<chunkNumber-1){
 			Chunk chunk = new Chunk(hash,counter+1,null,0);
 			Peer.wantReceivedChunk(chunk);
-			Message message = new Message(chunk);
+			Message message = new Message(chunk,Peer.getVersion());
 			try {
 				System.out.println("chamei uma vez");
 				while(!Peer.hasChunkBeenReceived(chunk)){

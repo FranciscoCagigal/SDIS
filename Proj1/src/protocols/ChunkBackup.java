@@ -12,17 +12,19 @@ public class ChunkBackup implements Runnable{
 	private Chunk chunk;
 	private int waitingTime;
 	private int numTries;
+	private String version;
 	
-	public ChunkBackup(Chunk chunk){		
+	public ChunkBackup(Chunk chunk,String version){		
 		this.chunk=chunk;
 		waitingTime=1000;
 		numTries=0;
+		this.version=version;
 	}
 
 	@Override
 	public void run() {
 		
-		Message message = new Message(chunk);
+		Message message = new Message(chunk,version);
 		
 		while(numTries < 5 && CsvHandler.repliMyChunk(chunk) < chunk.getReplication()){
 			try {

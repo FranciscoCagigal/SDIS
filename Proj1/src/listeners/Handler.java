@@ -79,7 +79,7 @@ public class Handler implements Runnable{
 		if(!isMyMessage(header[2]) && HandleFiles.fileExists("../Chunks"+Peer.getPeerId()+"/"+header[3]+"."+header[4])){
 
 			Chunk chunkRestored = new Chunk(header[3],Integer.parseInt(header[4]),HandleFiles.readFile("../Chunks"+Peer.getPeerId()+"/"+header[3]+"."+header[4]),0);
-			Message msg = new Message (chunkRestored);
+			Message msg = new Message (chunkRestored,Peer.getVersion());
 			Peer.askedToSendChunk(chunkRestored);
 			try {
 				Random rnd = new Random();
@@ -117,26 +117,48 @@ public class Handler implements Runnable{
 	
 	private void putChunkHandler(String []header){
 		byte[] body=getBody();
-		if(CsvHandler.isMyChunk(chunk)){
-			CsvHandler.updateMyChunks(chunk,null,0);
-		}
-		else if(Peer.iHaveSpace(directorySize()+(long)body.length)){
-			if(!HandleFiles.fileExists("../Chunks"+Peer.getPeerId()+"/"+header[3]+"." + header[4])){
+		if(header[0].equals("1.0")){
+			if(CsvHandler.isMyChunk(chunk)){
+				CsvHandler.updateMyChunks(chunk,null,0);
+			}
+			else if(Peer.iHaveSpace(directorySize()+(long)body.length)){
+				if(!HandleFiles.fileExists("../Chunks"+Peer.getPeerId()+"/"+header[3]+"." + header[4])){
+					
+					HandleFiles.writeFile("../Chunks"+Peer.getPeerId()+"/"+header[3]+"."+header[4], body);		
+				}
+				CsvHandler.updateChunkRepl(chunk,0,0);
+				Message message = new Message(chunk,Peer.getVersion());
 				
-				HandleFiles.writeFile("../Chunks"+Peer.getPeerId()+"/"+header[3]+"."+header[4], body);		
+				Random rnd = new Random();
+				try {
+					Thread.sleep(rnd.nextInt(401));
+					sendToCM(message.createStored());
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
-			CsvHandler.updateChunkRepl(chunk,0);
-			Message message = new Message(chunk);
-			
-			Random rnd = new Random();
-			try {
-				Thread.sleep(rnd.nextInt(401));
-				sendToCM(message.createStored());
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+		} else if(header[0].equals("2.0")){
+			if(CsvHandler.isMyChunk(chunk)){
+				CsvHandler.updateMyChunks(chunk,null,0);
+			}else if(Peer.iHaveSpace(directorySize()+(long)body.length)){
+				Peer.addToBackupEnhancement(header[3]+"."+header[4]);
+				Random rnd = new Random();
+				try {
+					Thread.sleep(rnd.nextInt(401));
+					if(Peer.getBackupEnhancement(header[3]+"."+header[4])<Integer.parseInt(header[5])){
+						Message message = new Message(chunk,header[0]);
+						sendToCM(message.createStored());
+						CsvHandler.updateChunkRepl(chunk,2,Peer.getBackupEnhancement(header[3]+"."+header[4])+1);
+					}
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+
 			}
 		}
+		
 	}
 	
 	private void removed(String []header){
@@ -149,7 +171,7 @@ public class Handler implements Runnable{
 				repl=CsvHandler.updateNegative(chunk,"../metadata"+Peer.getPeerId()+"/ChunkList.csv");
 				chunk.setReplication(repl);
 				chunk.setbody(HandleFiles.readFile("../Chunks"+Peer.getPeerId()+"/"+header[3]+"."+header[4]));
-				Message message = new Message(chunk);
+				Message message = new Message(chunk,Peer.getVersion());
 				try {
 					sendToMDB(message.createPutChunk());
 				} catch (IOException e) {
@@ -161,10 +183,18 @@ public class Handler implements Runnable{
 	}
 	
 	private void storedChunk(String []header){
-		if(CsvHandler.isMyChunk(chunk)){
-			CsvHandler.updateMyChunks(chunk, null, 1);
-		}else if(!isMyMessage(header[2])) {
-			CsvHandler.updateChunkRepl(chunk,1);
+		if(header[0].equals("1.0")){
+			if(CsvHandler.isMyChunk(chunk)){
+				CsvHandler.updateMyChunks(chunk, null, 1);
+			}else if(!isMyMessage(header[2])) {
+				CsvHandler.updateChunkRepl(chunk,1,0);
+			}
+		}else if(header[0].equals("2.0")){
+			if(CsvHandler.isMyChunk(chunk)){
+				CsvHandler.updateMyChunks(chunk, null, 1);
+			}else if(Peer.containsBackupEnhancement(header[3]+"."+header[4])) {
+				Peer.changeBackupEnhancement(header[3]+"."+header[4]);
+			}
 		}
 	}
 	

@@ -19,7 +19,7 @@ public class SpaceReclaiming implements Runnable{
 		while(!Peer.iHaveSpace(directorySize())){
 			Chunk chunk;
 			if((chunk=CsvHandler.eliminateGoodChunk())!=null){
-				Message message = new Message(chunk);
+				Message message = new Message(chunk,Peer.getVersion());
 				try {
 					sendToMC(message.createRemoved());
 				} catch (IOException e) {
@@ -27,7 +27,7 @@ public class SpaceReclaiming implements Runnable{
 					e.printStackTrace();
 				}
 			}else if((chunk=CsvHandler.eliminateGoodChunk())!=null){
-				Message message = new Message(chunk);
+				Message message = new Message(chunk,Peer.getVersion());
 				try {
 					sendToMC(message.createRemoved());
 				} catch (IOException e) {

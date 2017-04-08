@@ -30,7 +30,7 @@ public class FileDeletion implements Runnable {
 		
 		//apagar os chunks q estao backed up
 		Chunk chunk = new Chunk(hash,0,null,0);
-		Message message = new Message(chunk);
+		Message message = new Message(chunk,Peer.getVersion());
 		try {
 			sendToMC(message.createDelete());
 		} catch (IOException e) {

@@ -45,6 +45,12 @@ public class TestApp {
 					return false;
 				break;
 			}
+			case "backupenh":{
+				File f = new File(args[2]);
+				if(args.length!=4 || !f.exists() || f.isDirectory()||!args[3].matches("^-?\\d+$"))
+					return false;
+				break;
+			}
 			case "restore":{
 				if(args.length!=3){
 					return false;
@@ -81,7 +87,11 @@ public class TestApp {
 		switch(args[1].toLowerCase()){
 		
 			case "backup":{
-				peer.backup(new File(args[2]).getAbsoluteFile(), Integer.parseInt(args[3]));
+				peer.backup("1.0",new File(args[2]).getAbsoluteFile(), Integer.parseInt(args[3]));
+				break;
+			}
+			case "backupenh":{
+				peer.backup("2.0",new File(args[2]).getAbsoluteFile(), Integer.parseInt(args[3]));
 				break;
 			}
 			case "restore":{

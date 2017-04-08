@@ -314,7 +314,7 @@ public class CsvHandler {
 	}
 
 	//update =0 for reset  || update = 1 for adding 1
-	public synchronized static void updateChunkRepl(Chunk chunk,int update){
+	public synchronized static void updateChunkRepl(Chunk chunk,int update,int count){
 		
 		File metaData = new File("../metadata"+Peer.getPeerId()+"/ChunkList.csv");
 		Scanner scanner;
@@ -335,6 +335,9 @@ public class CsvHandler {
 						metaArray.add(divided[0]+Constants.COMMA_DELIMITER+divided[1]+Constants.COMMA_DELIMITER+divided[2]+Constants.COMMA_DELIMITER+(Integer.parseInt(divided[3])+1)+Constants.COMMA_DELIMITER);
 					else if(update==0)
 						metaArray.add(divided[0]+Constants.COMMA_DELIMITER+divided[1]+Constants.COMMA_DELIMITER+divided[2]+Constants.COMMA_DELIMITER+1+Constants.COMMA_DELIMITER);
+					else if(update==2){
+						metaArray.add(divided[0]+Constants.COMMA_DELIMITER+divided[1]+Constants.COMMA_DELIMITER+divided[2]+Constants.COMMA_DELIMITER+count+Constants.COMMA_DELIMITER);
+					}
 				}else metaArray.add(str);
 	        }
 			

@@ -26,7 +26,7 @@ import protocols.SpaceReclaiming;
 public class Peer extends UnicastRemoteObject  implements IPeer {
 
 	private static final long serialVersionUID = 1L;
-	private static int protocolVersion;
+	private static String protocolVersion;
 	private static int peerId;
 	private static String remoteObject;
 	
@@ -45,6 +45,10 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 	
 	//reclaim
 	private static int diskSpace;
+	
+	//backupenh
+	
+	private static HashMap<String,Integer> backupenh = new  HashMap<String,Integer>();
 	
 	//threads
 	private static Runnable mc1,mc2,mc3;
@@ -80,7 +84,7 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 			return false;
 		}
 		
-		protocolVersion=Integer.parseInt(args[0]);
+		protocolVersion=args[0];
 		setPeerId(Integer.parseInt(args[1]));
 		remoteObject=args[2];
 		
@@ -159,8 +163,8 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 	}
 
 	@Override
-	public void backup(File file, int replDeg) throws RemoteException {
-		Runnable run=new ReadFile(file,replDeg);
+	public void backup(String version,File file, int replDeg) throws RemoteException {
+		Runnable run=new ReadFile(version,file,replDeg);
 		new Thread(run).start();
 	}
 
@@ -295,27 +299,34 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 	public static void removeChunkSent(Chunk chunk){
 		waitingToBeSent.remove(chunk);
 	}
+	
+	public static String getVersion(){
+		return protocolVersion;
+	}
 	//end
 	
-	/*public static boolean isMyChunk(Chunk chunk){
-		return backedUp.containsKey(chunk);
+	//backup enh : start
+	public static void addToBackupEnhancement(String str){
+		backupenh.put(str, 0);
 	}
-	
-	public static int getNumberOfPeers(Chunk chunk){
-		return backedUp.get(chunk).size();
+	//backup enh : add 1 to key
+	public static void changeBackupEnhancement(String str){
+		int i= backupenh.get(str);
+		backupenh.remove(str);
+		backupenh.put(str, i+1);
 	}
-	
-	public static void addChunk(Chunk chunk){
-		CsvHandler.addChunk(chunk);
+	//backup enh : get replication
+	public static int getBackupEnhancement(String str){
+		return backupenh.get(str);
 	}
-	
-	public static void addToTranslations(String filename, String hash){
-		hashTranslations.put(filename, hash);
+	//backup enh : contain key
+	public static Boolean containsBackupEnhancement(String str){
+		return backupenh.containsKey(str);
 	}
-	
-	public static String getHashTranslation(String filename){
-		return hashTranslations.get(filename);
-	}*/
+	//backup enh : remove key
+	public static void removeBackupEnhancement(String str){
+		backupenh.remove(str);
+	}
 	
 	public static Runnable getMDRlistener(){
 		return mc3;

@@ -6,7 +6,7 @@ import java.rmi.RemoteException;
 
 public interface IPeer extends Remote{
 	
-	public void backup(File file,int replDeg) throws RemoteException;
+	public void backup(String version,File file,int replDeg) throws RemoteException;
 	public void restore(String filename) throws RemoteException;
 	public void delete(String filename) throws RemoteException;
 	public void reclaim(int space) throws RemoteException;

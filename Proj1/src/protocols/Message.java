@@ -9,15 +9,15 @@ import fileManager.Chunk;
 public class Message {
 	
 	private Chunk chunk;
+	private String version;
 	
-	private static String version="1.0";
-	
-	public Message (Chunk chunk1){
+	public Message (Chunk chunk1,String versionProtocol){
 		chunk=chunk1;
+		version=versionProtocol;
 	}
 	
 	protected byte[] createRemoved(){
-		String message=Constants.COMMAND_REMOVED+" "+version + " ";
+		String message=Constants.COMMAND_REMOVED+" "+Peer.getVersion() + " ";
 		message+=Peer.getPeerId() + " " ;
 		message+= chunk.getFileId()+" ";
 		message+= Constants.CRLF + Constants.CRLF;
@@ -27,7 +27,7 @@ public class Message {
 	}
 	
 	protected byte[] createDelete(){
-		String message=Constants.COMMAND_DELETE+" "+version + " ";
+		String message=Constants.COMMAND_DELETE+" "+Peer.getVersion() + " ";
 		message+=Peer.getPeerId() + " " ;
 		message+= chunk.getFileId()+" ";
 		message+= Constants.CRLF + Constants.CRLF;
@@ -37,7 +37,7 @@ public class Message {
 	}
 	
 	public byte[] createChunk(){
-		String message=Constants.COMMAND_CHUNK+" "+version + " ";
+		String message=Constants.COMMAND_CHUNK+" "+Peer.getVersion() + " ";
 		message+=Peer.getPeerId() + " " ;
 		message+= chunk.getFileId()+" ";
 		message+= chunk.getChunkNumber() + " ";
@@ -49,7 +49,7 @@ public class Message {
 	}
 	
 	public byte[] createGetChunk(){
-		String message=Constants.COMMAND_GET+" "+version + " ";
+		String message=Constants.COMMAND_GET+" "+Peer.getVersion() + " ";
 		message+=Peer.getPeerId() + " " ;
 		message+= chunk.getFileId()+" ";
 		message+= chunk.getChunkNumber() + " ";
@@ -74,7 +74,7 @@ public class Message {
 	
 	public byte[] createStored(){
 		
-		String message=Constants.COMMAND_STORED+" "+version + " ";
+		String message=Constants.COMMAND_STORED+" "+Peer.getVersion() + " ";
 		message+=Peer.getPeerId() + " " ;
 		message+= chunk.getFileId()+" ";
 		message+= chunk.getChunkNumber() + " ";
@@ -91,10 +91,6 @@ public class Message {
 		System.arraycopy(b, 0, buffer, a.length, b.length);
 		
 		return buffer;
-	}
-	
-	public static String getVersion() {
-		return version;
 	}
 
 }
