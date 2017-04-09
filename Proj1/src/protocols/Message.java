@@ -26,8 +26,18 @@ public class Message {
 		return buffer;
 	}
 	
+	public byte[] createDeleted(){
+		String message=Constants.COMMAND_DELETED+" "+version + " ";
+		message+=Peer.getPeerId() + " " ;
+		message+= chunk.getFileId()+" ";
+		message+= Constants.CRLF + Constants.CRLF;
+		byte[] buffer = message.getBytes(StandardCharsets.UTF_8);
+		
+		return buffer;
+	}
+	
 	protected byte[] createDelete(){
-		String message=Constants.COMMAND_DELETE+" "+Peer.getVersion() + " ";
+		String message=Constants.COMMAND_DELETE+" "+version + " ";
 		message+=Peer.getPeerId() + " " ;
 		message+= chunk.getFileId()+" ";
 		message+= Constants.CRLF + Constants.CRLF;

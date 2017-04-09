@@ -23,7 +23,7 @@ public class ChunkRestore implements Runnable {
 	
 	public ChunkRestore(String version,String filename){
 		fileName=filename;
-		chunkNumber=1;
+		chunkNumber=0;
 		hash =CsvHandler.getHash(fileName);
 		this.version=version;
 	}
@@ -33,23 +33,25 @@ public class ChunkRestore implements Runnable {
 		getNumberOfChunks();
 		
 		int counter=0;
-		while (counter<chunkNumber-1){
-			Chunk chunk = new Chunk(hash,counter+1,null,0);
+		while (counter<chunkNumber){
+			Chunk chunk = new Chunk(hash,counter,null,0);
 			Message message = new Message(chunk,version);
 			Peer.wantReceivedChunk(chunk);
 			if(version.equals("1.0")){
-				try {
-					
-					while(!Peer.hasChunkBeenReceived(chunk)){
+				while(!Peer.hasChunkBeenReceived(chunk)){
+					 try {
 						sendToMC(message.createGetChunk());
 						Thread.sleep(1000);
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
 					}
-					System.out.println("recebi");
-					chunkData.add(Peer.getDataFromReceivedChunk(chunk));
-				} catch (IOException | InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
 				}
+				System.out.println("recebi");
+				chunkData.add(Peer.getDataFromReceivedChunk(chunk));
 			}else if(version.equals("2.0")){
 					try {
 						sendToMC(message.createGetChunk());

@@ -124,6 +124,29 @@ public class CsvHandler {
 		return 0;
 	}
 	
+	public synchronized static int numberOfChunks(String fileId){
+		File metaData = new File("../metadata"+Peer.getPeerId()+"/MyChunks.csv");
+		Scanner scanner;
+		int counter=0;
+		try {
+			scanner = new Scanner(metaData);
+			
+			scanner.useDelimiter(Constants.NEW_LINE_SEPARATOR);
+			while(scanner.hasNext()){
+				String str=scanner.next();
+				String[] divided = str.split(Constants.COMMA_DELIMITER);
+				if(divided[0].equals(fileId)){
+					counter++;
+				}
+	        }
+			scanner.close();
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return counter;
+	}
+	
 	public synchronized static boolean isMyChunk(Chunk chunk,String path){
 		File metaData = new File(path);
 		Scanner scanner;

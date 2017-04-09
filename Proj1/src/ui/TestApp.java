@@ -69,6 +69,12 @@ public class TestApp {
 				}
 				break;
 			}
+			case "deleteenh":{
+				if(args.length!=3){
+					return false;
+				}
+				break;
+			}
 			case "reclaim":{
 				if(args.length!=3 || !args[2].matches("^-?\\d+$")){
 					return false;
@@ -109,7 +115,11 @@ public class TestApp {
 				break;
 			}
 			case "delete":{
-				peer.delete(new File(args[2]).getAbsoluteFile().getName());
+				peer.delete("1.0",new File(args[2]).getAbsoluteFile().getName());
+				break;
+			}
+			case "deleteenh":{
+				peer.delete("2.0",new File(args[2]).getAbsoluteFile().getName());
 				break;
 			}
 			case "reclaim":{

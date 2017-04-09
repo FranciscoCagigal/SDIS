@@ -47,8 +47,10 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 	private static int diskSpace;
 	
 	//backupenh
-	
 	private static HashMap<String,Integer> backupenh = new  HashMap<String,Integer>();
+	
+	//deleteenh
+	private static HashMap<String,Integer> deleteenh = new  HashMap<String,Integer>();
 	
 	//threads
 	private static Runnable mc1,mc2,mc3;
@@ -175,8 +177,8 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 	}
 
 	@Override
-	public void delete(String filename) throws RemoteException{
-		Runnable run=new FileDeletion(filename);
+	public void delete(String version,String filename) throws RemoteException{
+		Runnable run=new FileDeletion(version,filename);
 		new Thread(run).start();
 	}
 
@@ -326,6 +328,29 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 	//backup enh : remove key
 	public static void removeBackupEnhancement(String str){
 		backupenh.remove(str);
+	}
+	
+	//delete enh : start
+	public static void addToDeleteEnhancement(String str){
+		deleteenh.put(str, 0);
+	}
+	//delete enh : add 1 to key
+	public static void changeDeleteEnhancement(String str){
+		int i= deleteenh.get(str);
+		deleteenh.remove(str);
+		deleteenh.put(str, i+1);
+	}
+	//delete enh : get replication
+	public static int getDeleteEnhancement(String str){
+		return deleteenh.get(str);
+	}
+	//delete enh : contain key
+	public static Boolean containsDeleteEnhancement(String str){
+		return deleteenh.containsKey(str);
+	}
+	//delete enh : remove key
+	public static void removeDeleteEnhancement(String str){
+		deleteenh.remove(str);
 	}
 	
 	public static Runnable getMDRlistener(){

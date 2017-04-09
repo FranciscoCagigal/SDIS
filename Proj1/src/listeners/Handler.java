@@ -50,6 +50,9 @@ public class Handler implements Runnable{
 				chunk = new Chunk(header[3],Integer.parseInt(header[4]),null,0);
 				removed(header);
 				break;
+			case Constants.COMMAND_DELETED:
+				deleted(header);
+				break;
 			default:
 		}
 				
@@ -65,15 +68,32 @@ public class Handler implements Runnable{
 		
 	}
 	
-	private void deleteChunks(String[] header){
-		int counter = 1;
-		CsvHandler.deleteChunks(header[3], "../metadata"+Peer.getPeerId()+"/ChunkList.csv");
-		while(true){
-			if(HandleFiles.fileExists("../Chunks"+Peer.getPeerId()+"/"+header[3]+"."+counter)){
-				HandleFiles.eraseFile("../Chunks"+Peer.getPeerId()+"/"+header[3]+"."+counter);
-				counter++;
-			}else break;
+	private void deleted(String[] header){
+		if(Peer.containsDeleteEnhancement(header[3])){
+			Peer.changeDeleteEnhancement(header[3]);
 		}
+	}
+	
+	private void deleteChunks(String[] header){
+		if(!isMyMessage(header[2])){
+			int counter = 0;
+			CsvHandler.deleteChunks(header[3], "../metadata"+Peer.getPeerId()+"/ChunkList.csv");
+			while(true){
+				if(HandleFiles.fileExists("../Chunks"+Peer.getPeerId()+"/"+header[3]+"."+counter)){
+					HandleFiles.eraseFile("../Chunks"+Peer.getPeerId()+"/"+header[3]+"."+counter);
+					if(header[1].equals("2.0")){
+						Message message = new Message(new Chunk(header[3],counter,null,0),"2.0");
+						try {
+							sendToCM(message.createDeleted());
+						} catch (IOException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+					}
+					counter++;
+				}else break;
+			}
+		}	
 	}
 	
 	private void getChunk(String[] header){

@@ -33,7 +33,7 @@ public class ReadFile implements Runnable {
 			String fileIDbin = new String(messageDigest.digest());
 			String fileID = String.format("%040x", new BigInteger(1, fileIDbin.getBytes()));
 			
-			int chunkNo = 1;
+			int chunkNo = 0;
 			int fileSize = (int) file.length();
 			  
 			int totalBytesRead = 0;

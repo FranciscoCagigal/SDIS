@@ -14,6 +14,7 @@ public interface Constants {
 	public static final String COMMAND_GET = "GETCHUNK";
 	public static final String COMMAND_CHUNK = "CHUNK";
 	public static final String COMMAND_DELETE = "DELETE";
+	public static final String COMMAND_DELETED = "DELETED";
 	public static final String COMMAND_REMOVED = "REMOVED";
 
 }
