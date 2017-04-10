@@ -143,18 +143,23 @@ public class Handler implements Runnable{
 	}
 	
 	private void putChunkHandler(String []header){
-		System.out.println("entrei aqui: " +header[0]);
+		
+		if(Peer.reclaimHasChunk(chunk)){
+			Peer.reclaimTobeSentWasRcvd(chunk);
+		}		
 		byte[] body=getBody();
 		if(header[1].equals("1.0")){
 			System.out.println("entrei aqui");
 			if(CsvHandler.isMyChunk(chunk,"../metadata"+Peer.getPeerId()+"/MyChunks.csv")){
+				System.out.println("encontri o meu chunk");
 				CsvHandler.updateMyChunks(chunk,null,0);
 			}
-			else if(Peer.iHaveSpace(directorySize()+(long)body.length)){
+			else if(Peer.iHaveSpace(directorySize()+(long)body.length) || HandleFiles.fileExists("../Chunks"+Peer.getPeerId()+"/"+header[3]+"." + header[4])){
 				if(!HandleFiles.fileExists("../Chunks"+Peer.getPeerId()+"/"+header[3]+"." + header[4])){
 					
 					HandleFiles.writeFile("../Chunks"+Peer.getPeerId()+"/"+header[3]+"."+header[4], body);		
 				}
+				System.out.println("fiz update do " + header[4]);
 				CsvHandler.updateChunkRepl(chunk,0,1);
 				Message message = new Message(chunk,header[1]);
 				
@@ -167,7 +172,7 @@ public class Handler implements Runnable{
 					e.printStackTrace();
 				}
 			}
-		} else if(header[1].equals("2.0")){
+		} else{
 			if(CsvHandler.isMyChunk(chunk,"../metadata"+Peer.getPeerId()+"/MyChunks.csv")){
 				CsvHandler.updateMyChunks(chunk,null,0);
 			}else if(Peer.iHaveSpace(directorySize()+(long)body.length)){
@@ -199,6 +204,7 @@ public class Handler implements Runnable{
 			}
 		}
 		
+		
 	}
 	
 	private void removed(String []header){
@@ -209,14 +215,25 @@ public class Handler implements Runnable{
 			}
 			else if(HandleFiles.fileExists("../Chunks"+Peer.getPeerId()+"/"+header[3]+"."+header[4])){
 				repl=CsvHandler.updateNegative(chunk,"../metadata"+Peer.getPeerId()+"/ChunkList.csv");
-				chunk.setReplication(repl);
-				chunk.setbody(HandleFiles.readFile("../Chunks"+Peer.getPeerId()+"/"+header[3]+"."+header[4]));
-				Message message = new Message(chunk,Peer.getVersion());
-				try {
-					sendToMDB(message.createPutChunk());
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+				if(repl!=-1){
+					chunk.setReplication(repl);
+					chunk.setbody(HandleFiles.readFile("../Chunks"+Peer.getPeerId()+"/"+header[3]+"."+header[4]));
+					Peer.reclaimToSendChunk(chunk);
+					Random rnd = new Random();
+					try {
+						Thread.sleep(rnd.nextInt(401));
+						if(!Peer.reclaimChunkAlreadySent(chunk)){
+							Message message = new Message(chunk,header[1]);
+							sendToMDB(message.createPutChunk());
+						}
+						Peer.removeReclaimSent(chunk);
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
 				}
 			}
 		}
@@ -226,7 +243,7 @@ public class Handler implements Runnable{
 		if(header[1].equals("1.0")){
 			if(CsvHandler.isMyChunk(chunk,"../metadata"+Peer.getPeerId()+"/MyChunks.csv")){
 				CsvHandler.updateMyChunks(chunk, null, 1);
-			}else if(!isMyMessage(header[2])) {
+			}else if(!isMyMessage(header[2])&&CsvHandler.isMyChunk(chunk,"../metadata"+Peer.getPeerId()+"/ChunkList.csv")) {
 				CsvHandler.updateChunkRepl(chunk,1,1);
 			}
 		}else if(header[1].equals("2.0")){

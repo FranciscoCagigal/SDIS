@@ -26,7 +26,7 @@ public class SpaceReclaiming implements Runnable{
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-			}else if((chunk=CsvHandler.eliminateGoodChunk())!=null){
+			}else if((chunk=CsvHandler.eliminateBadChunk())!=null){
 				Message message = new Message(chunk,Peer.getVersion());
 				try {
 					sendToMC(message.createRemoved());

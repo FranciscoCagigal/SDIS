@@ -20,6 +20,7 @@ public class Message {
 		String message=Constants.COMMAND_REMOVED+" "+Peer.getVersion() + " ";
 		message+=Peer.getPeerId() + " " ;
 		message+= chunk.getFileId()+" ";
+		message+= chunk.getChunkNumber()+" ";
 		message+= Constants.CRLF + Constants.CRLF;
 		byte[] buffer = message.getBytes(StandardCharsets.UTF_8);
 		

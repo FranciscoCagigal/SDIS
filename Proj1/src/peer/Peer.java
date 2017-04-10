@@ -14,6 +14,7 @@ import java.rmi.server.UnicastRemoteObject;
 import java.util.HashMap;
 
 import fileManager.Chunk;
+import fileManager.CsvHandler;
 import listeners.Multicast;
 import listeners.MulticastBackup;
 import listeners.MulticastRestore;
@@ -45,6 +46,7 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 	
 	//reclaim
 	private static int diskSpace;
+	private static HashMap<Chunk,Boolean>reclaimToBeSent = new HashMap<Chunk,Boolean>();
 	
 	//backupenh
 	private static HashMap<String,Integer> backupenh = new  HashMap<String,Integer>();
@@ -153,10 +155,14 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 		f = new File("../metadata"+peerId+"/ChunkList.csv");
 		if(!f.exists()){
 			try {
-				f.createNewFile();
+				f.createNewFile();				
 				f = new File("../metadata"+peerId+"/MyChunks.csv");
-				if(!f.exists())
+				if(!f.exists()){
 					f.createNewFile();
+					CsvHandler.updateMemory(0);
+					diskSpace=0;
+				}else diskSpace=CsvHandler.getMemory();
+					
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -185,6 +191,7 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 	@Override
 	public void reclaim(int space) throws RemoteException{
 		diskSpace=space*1000;
+		CsvHandler.updateMemory(space);
 		Runnable run=new SpaceReclaiming();
 		new Thread(run).start();
 	}
@@ -197,6 +204,7 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 	}
 
 	public static boolean iHaveSpace(long space){
+		System.out.println("entrei aqui : " + diskSpace + " - " + space);
 		if(diskSpace==0)
 			return true;
 		else if(diskSpace>space)
@@ -235,18 +243,6 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 	public static int getMdrPort(){
 		return mdrPort;
 	}
-	
-	/*public static void addBackup(Chunk chunk, String peerId){
-		if(peerId==null){
-			List<String> peerList = new ArrayList<String>();
-			backedUp.put(chunk,peerList);
-		}else{
-			List<String> peerList =backedUp.get(chunk);
-			peerList.add(peerId);
-			backedUp.replace(chunk, peerList);
-		}
-		
-	}*/
 	
 	//restore: initiator host
 	public static boolean askedForChunk(Chunk chunk){
@@ -289,13 +285,13 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 		return waitingToBeSent.get(chunk);
 	}
 	
-	public static void askedToSendChunk(Chunk chunk){
-		waitingToBeSent.put(chunk,false);
-	}
-	
 	public static void chunkTobeSentWasRcvd(Chunk chunk){
 		waitingToBeSent.remove(chunk);
 		waitingToBeSent.put(chunk,true);
+	}
+	
+	public static void askedToSendChunk(Chunk chunk){
+		waitingToBeSent.put(chunk,false);
 	}
 	
 	public static void removeChunkSent(Chunk chunk){
@@ -351,6 +347,28 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 	//delete enh : remove key
 	public static void removeDeleteEnhancement(String str){
 		deleteenh.remove(str);
+	}
+	
+	//reclaim
+	public static boolean reclaimHasChunk(Chunk chunk){
+		return reclaimToBeSent.containsKey(chunk);
+	}
+	
+	public static boolean reclaimChunkAlreadySent(Chunk chunk){
+		return reclaimToBeSent.get(chunk);
+	}
+	
+	public static void reclaimToSendChunk(Chunk chunk){
+		reclaimToBeSent.put(chunk,false);
+	}
+	
+	public static void removeReclaimSent(Chunk chunk){
+		reclaimToBeSent.remove(chunk);
+	}
+	
+	public static void reclaimTobeSentWasRcvd(Chunk chunk){
+		reclaimToBeSent.remove(chunk);
+		reclaimToBeSent.put(chunk,true);
 	}
 	
 	public static Runnable getMDRlistener(){

@@ -34,7 +34,7 @@ public class FileDeletion implements Runnable {
 			
 			for(int i=0;i<=CsvHandler.numberOfChunks(hash);i++){
 				Chunk chunk=new Chunk(hash,i,null,0);
-				sumOfRepl+=CsvHandler.repliMyChunk(chunk);
+				sumOfRepl+=CsvHandler.repliMyChunk(chunk,"../metadata"+Peer.getPeerId()+"/MyChunks.csv");
 			}
 			Peer.addToDeleteEnhancement(hash);
 		}

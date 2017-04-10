@@ -25,7 +25,7 @@ public class CsvHandler {
 			while(scanner.hasNext()){
 				String str=scanner.next();
 				String[] divided = str.split(Constants.COMMA_DELIMITER);
-				if(!divided[0].equals(fileId)){
+				if(divided.length>1 &&!divided[0].equals(fileId)){
 					metaArray.add(str);
 				}
 	        }
@@ -48,15 +48,20 @@ public class CsvHandler {
 		File metaData = new File(path);
 		Scanner scanner;		
 		List<String> metaArray=new ArrayList<String>();	
-		int replicationDegree=0;
+		int replicationDegree=-1;
 		try {
 			scanner = new Scanner(metaData);
 			scanner.useDelimiter(Constants.NEW_LINE_SEPARATOR);
+
 			while(scanner.hasNext()){
 				String str=scanner.next();
 				String[] divided = str.split(Constants.COMMA_DELIMITER);
-				if(Integer.parseInt(divided[1])==chunk.getChunkNumber() && divided[0].equals(chunk.getFileId())){				
-					metaArray.add(divided[0]+Constants.COMMA_DELIMITER+divided[1]+Constants.COMMA_DELIMITER+divided[2]+Constants.COMMA_DELIMITER+(Integer.parseInt(divided[3])-1)+Constants.COMMA_DELIMITER+divided[4]+Constants.COMMA_DELIMITER);
+				if(divided.length>1 &&Integer.parseInt(divided[1])==chunk.getChunkNumber() && divided[0].equals(chunk.getFileId())){				
+					if(divided.length==5)
+						metaArray.add(divided[0]+Constants.COMMA_DELIMITER+divided[1]+Constants.COMMA_DELIMITER+divided[2]+Constants.COMMA_DELIMITER+(Integer.parseInt(divided[3])-1)+Constants.COMMA_DELIMITER+divided[4]+Constants.COMMA_DELIMITER);
+					else if(divided.length==4){
+						metaArray.add(divided[0]+Constants.COMMA_DELIMITER+divided[1]+Constants.COMMA_DELIMITER+divided[2]+Constants.COMMA_DELIMITER+(Integer.parseInt(divided[3])-1)+Constants.COMMA_DELIMITER);
+					}
 					if(Integer.parseInt(divided[3])-1<Integer.parseInt(divided[2])){
 						replicationDegree=Integer.parseInt(divided[2]);
 					}
@@ -88,7 +93,7 @@ public class CsvHandler {
 			while(scanner.hasNext()){
 				String str=scanner.next();
 				String[] divided = str.split(Constants.COMMA_DELIMITER);
-				if(divided[4].equals(name)){
+				if(divided.length>1 &&divided[4].equals(name)){
 					scanner.close();
 					return divided[0];
 				}
@@ -101,8 +106,8 @@ public class CsvHandler {
 		return null;
 	}
 	
-	public synchronized static int repliMyChunk(Chunk chunk){
-		File metaData = new File("../metadata"+Peer.getPeerId()+"/MyChunks.csv");
+	public synchronized static int repliMyChunk(Chunk chunk,String path){
+		File metaData = new File(path);
 		Scanner scanner;
 		try {
 			scanner = new Scanner(metaData);
@@ -111,7 +116,7 @@ public class CsvHandler {
 			while(scanner.hasNext()){
 				String str=scanner.next();
 				String[] divided = str.split(Constants.COMMA_DELIMITER);
-				if(Integer.parseInt(divided[1])==chunk.getChunkNumber() && divided[0].equals(chunk.getFileId())){
+				if(divided.length>1 &&Integer.parseInt(divided[1])==chunk.getChunkNumber() && divided[0].equals(chunk.getFileId())){
 					scanner.close();
 					return Integer.parseInt(divided[3]);
 				}
@@ -135,7 +140,7 @@ public class CsvHandler {
 			while(scanner.hasNext()){
 				String str=scanner.next();
 				String[] divided = str.split(Constants.COMMA_DELIMITER);
-				if(divided[0].equals(fileId)){
+				if(divided.length>1 &&divided[0].equals(fileId)){
 					counter++;
 				}
 	        }
@@ -157,7 +162,7 @@ public class CsvHandler {
 			while(scanner.hasNext()){
 				String str=scanner.next();
 				String[] divided = str.split(Constants.COMMA_DELIMITER);
-				if(Integer.parseInt(divided[1])==chunk.getChunkNumber() && divided[0].equals(chunk.getFileId())){
+				if(divided.length>1 &&Integer.parseInt(divided[1])==chunk.getChunkNumber() && divided[0].equals(chunk.getFileId())){
 					iHaveChunk=true;
 				}
 	        }
@@ -169,6 +174,7 @@ public class CsvHandler {
 	}
 	
 	public synchronized static void updateMyChunks(Chunk chunk,String name,int update){
+		
 		File metaData = new File("../metadata"+Peer.getPeerId()+"/MyChunks.csv");
 		Scanner scanner;
 		
@@ -182,7 +188,7 @@ public class CsvHandler {
 			while(scanner.hasNext()){
 				String str=scanner.next();
 				String[] divided = str.split(Constants.COMMA_DELIMITER);
-				if(Integer.parseInt(divided[1])==chunk.getChunkNumber() && divided[0].equals(chunk.getFileId())){
+				if(divided.length>1 && Integer.parseInt(divided[1])==chunk.getChunkNumber() && divided[0].equals(chunk.getFileId())){
 					iHaveChunk=true;
 					if(update==1)
 						metaArray.add(divided[0]+Constants.COMMA_DELIMITER+divided[1]+Constants.COMMA_DELIMITER+divided[2]+Constants.COMMA_DELIMITER+(Integer.parseInt(divided[3])+1)+Constants.COMMA_DELIMITER+divided[4]+Constants.COMMA_DELIMITER);
@@ -226,6 +232,8 @@ public class CsvHandler {
 	}
 	
 	public synchronized static Chunk eliminateBadChunk(){
+		System.out.println("vou eliminar bad chunk");
+		
 		File metaData = new File("../metadata"+Peer.getPeerId()+"/ChunkList.csv");
 		Scanner scanner;
 		List<String> metaArray=new ArrayList<String>();
@@ -280,8 +288,11 @@ public class CsvHandler {
 			while(scanner.hasNext()){
 				String str=scanner.next();
 				String[] divided = str.split(Constants.COMMA_DELIMITER);
+				System.out.println(Integer.parseInt(divided[2]));
+				System.out.println(Integer.parseInt(divided[3]));
 				if(Integer.parseInt(divided[2])<Integer.parseInt(divided[3]) && !iHaveChunk){
 					iHaveChunk=true;
+					System.out.println("vou apagar");
 					chunk=new Chunk(divided[0],Integer.parseInt(divided[1]),null,0);
 					HandleFiles.eraseFile("../Chunks"+Peer.getPeerId()+"/"+divided[0]+"."+divided[1]);
 				}else metaArray.add(str);
@@ -304,6 +315,55 @@ public class CsvHandler {
 		}
 		
 		return chunk;
+	}
+	
+	public synchronized static int getMemory(){
+		File metaData = new File("../metadata"+Peer.getPeerId()+"/MyChunks.csv");
+		Scanner scanner;
+		int memory=0;
+		try {
+			scanner = new Scanner(metaData);
+			if(scanner.hasNext()){
+				String str=scanner.next();
+				memory=Integer.parseInt(str);
+			}
+			scanner.close();
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return memory;
+	}
+	
+	public synchronized static void updateMemory(int memory){
+		File metaData = new File("../metadata"+Peer.getPeerId()+"/MyChunks.csv");
+		Scanner scanner;		
+		List<String> metaArray=new ArrayList<String>();
+		
+		try {
+			scanner = new Scanner(metaData);
+			scanner.useDelimiter(Constants.NEW_LINE_SEPARATOR);
+			String str;
+			if(scanner.hasNext()){
+				str=scanner.next();
+			}
+			metaArray.add(String.valueOf(memory)+Constants.COMMA_DELIMITER);
+			while(scanner.hasNext()){
+				str=scanner.next();
+				metaArray.add(str);
+	        }
+
+			FileWriter fileWriter = new FileWriter("../metadata"+Peer.getPeerId()+"/MyChunks.csv", false);
+			for(String str1: metaArray){
+				fileWriter.append(str1);
+				fileWriter.append(Constants.NEW_LINE_SEPARATOR);
+			}
+			fileWriter.close();
+			
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	public synchronized static void updateChunkRepl(Chunk chunk,int update,int count){
@@ -350,7 +410,7 @@ public class CsvHandler {
 				fileWriter.append(Constants.COMMA_DELIMITER);
 				fileWriter.append(Integer.toString(chunk.getReplication()));
 				fileWriter.append(Constants.COMMA_DELIMITER);
-				fileWriter.append(Integer.toString(count));
+				fileWriter.append(String.valueOf(count));
 				fileWriter.append(Constants.COMMA_DELIMITER);
 				fileWriter.append(Constants.NEW_LINE_SEPARATOR);
 				

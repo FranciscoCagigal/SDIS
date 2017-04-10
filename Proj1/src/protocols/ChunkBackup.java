@@ -26,7 +26,7 @@ public class ChunkBackup implements Runnable{
 		
 		Message message = new Message(chunk,version);
 		
-		while(numTries < 5 && CsvHandler.repliMyChunk(chunk) < chunk.getReplication()){
+		while(numTries < 5 && CsvHandler.repliMyChunk(chunk,"../metadata"+Peer.getPeerId()+"/MyChunks.csv") < chunk.getReplication()){
 			try {
 				
 				sendToMDB(Message.concatBytes(message.createPutChunk(),chunk.getChunkData()));
