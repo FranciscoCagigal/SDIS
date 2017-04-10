@@ -14,8 +14,7 @@ public class ServiceState {
 		File metaDataInit = new File("../metadata"+Peer.getPeerId()+"/MyChunks.csv");
 		File metaDataStored = new File("../metadata"+Peer.getPeerId()+"/ChunkList.csv");
 		
-		String result = "/";
-		result+=" -- SERVICE STATE PEER "+Peer.getPeerId()+" -- ";
+		String result = " -- SERVICE STATE PEER "+Peer.getPeerId()+" -- ";
 		result+="/";
 		result+="/This Peer has initiated the backup of the following files:";
 		result+="/";
@@ -98,13 +97,11 @@ public class ServiceState {
 		else {
 			result+="/This Peer has "+CsvHandler.getMemory()+" KBytes of capacity to store chunks.";
 		}
-		result+="/This Peer uses "+ ((int) SpaceReclaiming.directorySize())/1000+" KBytes to store chunks.";
+		result+="/This Peer uses "+ ((int) SpaceReclaiming.directorySize())/1000+" KBytes of capacity to store chunks.";
 		result+="/";
 		result+="/  ---------  ";
 		result+="/";
 		result+="/ -- END OF SERVICE STATE PEER "+Peer.getPeerId()+" -- ";
-		result+="/";
-		
 		
 		return result;
 	}

@@ -14,11 +14,8 @@ public class ServiceState {
 		File metaDataInit = new File("../metadata"+Peer.getPeerId()+"/MyChunks.csv");
 		File metaDataStored = new File("../metadata"+Peer.getPeerId()+"/ChunkList.csv");
 		
-		String result = "/";
-		result+=" -- SERVICE STATE PEER "+Peer.getPeerId()+" -- ";
-		result+="/";
+		String result = " -- SERVICE STATE PEER "+Peer.getPeerId()+" -- ";
 		result+="/This Peer has initiated the backup of the following files:";
-		result+="/";
 		
 		int counter = 0;
 		String nextChunk;
@@ -36,7 +33,6 @@ public class ServiceState {
 				nextChunk = divided[0];
 				if (!nextChunk.equals(lastChunk)){
 					if (counter > 0) {
-						result+="/";
 						result+="/  ----------  ";
 					}
 					counter++;
@@ -55,13 +51,10 @@ public class ServiceState {
 				}
 				lastChunk = divided[0];	
 			}
-			result+="/";
 			result+="/  ----------  ";
-			result+="/";
 			scannerInit.close();
 			
 			result+="/This Peer has stored the following chunks:";
-			result+="/";
 			
 			Scanner scannerChunks;
 				scannerChunks = new Scanner(metaDataStored);
@@ -80,31 +73,26 @@ public class ServiceState {
 					int tempSize = ((int) temp.length())/1000;
 					result+="/File size: "+tempSize;
 					result+="/Percieved Replication Degree: "+divided[3];
-					result+="/";
 					
 				}
 				result+="/  ---------  ";
-				result+="/";
 				scannerChunks.close();
 				
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		result+="/";
+		
 		if (CsvHandler.getMemory() == 0){
 			result+="/This Peer's capacity to store chunks is the total available disk space.";
 		}
 		else {
 			result+="/This Peer has "+CsvHandler.getMemory()+" KBytes of capacity to store chunks.";
 		}
-		result+="/This Peer uses "+ ((int) SpaceReclaiming.directorySize())/1000+" KBytes to store chunks.";
-		result+="/";
+		result+="/This Peer uses "+ ((int) SpaceReclaiming.directorySize())/1000+" KBytes of capacity to store chunks.";
 		result+="/  ---------  ";
-		result+="/";
-		result+="/ -- END OF SERVICE STATE PEER "+Peer.getPeerId()+" -- ";
-		result+="/";
 		
+		result+="/ -- END OF SERVICE STATE PEER "+Peer.getPeerId()+" -- ";
 		
 		return result;
 	}

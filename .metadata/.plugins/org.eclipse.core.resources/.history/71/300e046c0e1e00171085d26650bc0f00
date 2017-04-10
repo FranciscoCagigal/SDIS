@@ -98,7 +98,7 @@ public class ServiceState {
 		else {
 			result+="/This Peer has "+CsvHandler.getMemory()+" KBytes of capacity to store chunks.";
 		}
-		result+="/This Peer uses "+ ((int) SpaceReclaiming.directorySize())/1000+" KBytes to store chunks.";
+		result+="/This Peer uses "+ ((int) SpaceReclaiming.directorySize())/1000+" KBytes of capacity to store chunks.";
 		result+="/";
 		result+="/  ---------  ";
 		result+="/";
