@@ -423,4 +423,27 @@ public class CsvHandler {
 		}
 		
 	}
+
+	public synchronized static List<Chunk> getBadChunks(){
+		File metaData = new File("../metadata"+Peer.getPeerId()+"/ChunkList.csv");
+		Scanner scanner;
+		List<Chunk> badchunks= new ArrayList<Chunk>();
+		try {
+			scanner = new Scanner(metaData);
+			scanner.useDelimiter(Constants.NEW_LINE_SEPARATOR);
+			while(scanner.hasNext()){
+				String str=scanner.next();
+				String[] divided = str.split(Constants.COMMA_DELIMITER);
+				if(Integer.parseInt(divided[3])<Integer.parseInt(divided[2])){
+					badchunks.add(new Chunk(divided[0],Integer.parseInt(divided[1]),HandleFiles.readFile("../Chunks"+Peer.getPeerId()+"/"+divided[0]+"."+divided[1]),Integer.parseInt(divided[2])));
+				}
+			}
+			
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		return badchunks;
+	}
 }

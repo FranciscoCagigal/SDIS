@@ -12,12 +12,14 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.HashMap;
+import java.util.List;
 
 import fileManager.Chunk;
 import fileManager.CsvHandler;
 import listeners.Multicast;
 import listeners.MulticastBackup;
 import listeners.MulticastRestore;
+import protocols.ChunkBackup;
 import protocols.ChunkRestore;
 import protocols.FileDeletion;
 import protocols.ReadFile;
@@ -78,6 +80,10 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 		joinGroups();
 		
 		System.out.println("Server ready");
+		
+		if(!protocolVersion.equals("1.0")){
+			reclaimEnh();
+		}
 		
 	}
 	
@@ -374,4 +380,13 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 	public static Runnable getMDRlistener(){
 		return mc3;
 	}
+	
+	private static void reclaimEnh(){
+		List<Chunk> badChunks = CsvHandler.getBadChunks();
+		for(Chunk chunk : badChunks){
+			Runnable run=new ChunkBackup(chunk,"1.0");
+			new Thread(run).start();
+		}
+	}
+	
 }
