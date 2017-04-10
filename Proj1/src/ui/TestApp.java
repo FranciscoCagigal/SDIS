@@ -127,7 +127,11 @@ public class TestApp {
 				break;
 			}
 			case "state":{
-				peer.state();
+				String temp = peer.state();
+				String[] split = temp.split("/");
+				for(String s : split) {
+					System.out.println(s);
+				}
 				break;
 			}
 		

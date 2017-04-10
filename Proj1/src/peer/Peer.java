@@ -203,9 +203,10 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 	}
 
 	@Override
-	public void state() throws RemoteException{
+	public String state() throws RemoteException{
 		// TODO Auto-generated method stub
-		ServiceState.getServiceState();
+		String result = ServiceState.getServiceState();
+		return result;
 		
 	}
 

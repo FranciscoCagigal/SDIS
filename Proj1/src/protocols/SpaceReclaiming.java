@@ -38,7 +38,7 @@ public class SpaceReclaiming implements Runnable{
 		}
 	}
 	
-	private long directorySize(){
+	public static long directorySize(){
 		long length = 0;
 		File directory = new File("../Chunks"+Peer.getPeerId());
 		for (File file : directory.listFiles()) {
