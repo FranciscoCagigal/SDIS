@@ -149,7 +149,7 @@ public class Handler implements Runnable{
 		}		
 		byte[] body=getBody();
 		if(header[1].equals("1.0")){
-			System.out.println("entrei aqui");
+			System.out.println("saquei : " + body.length);
 			if(CsvHandler.isMyChunk(chunk,"../metadata"+Peer.getPeerId()+"/MyChunks.csv")){
 				System.out.println("encontri o meu chunk");
 				CsvHandler.updateMyChunks(chunk,null,0);
@@ -287,7 +287,9 @@ public class Handler implements Runnable{
 	
 	private byte[] getBody(){
 		String str = new String(packet.getData(), StandardCharsets.UTF_8);
-		String body = str.substring(str.indexOf(Constants.CRLF)+4, str.length());
+		String body = str.substring(str.indexOf(Constants.CRLF)+4, str.length()).replaceAll("\0", "");
+		System.out.println("tamanho do pacote - "+str.length());
+		System.out.println("tamanho do body - "+body.length());
 		return body.getBytes(StandardCharsets.UTF_8);		
 	}
 	

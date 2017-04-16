@@ -40,13 +40,12 @@ public class ReadFile implements Runnable {
 			
 			while ( totalBytesRead < fileSize ) {
 				
-				Chunk chunk = new Chunk(fileID, chunkNo, null, replication);
-				
-				Message message = new Message(chunk,version);
-				byte[] msgbytes = message.createPutChunk();
-			    byte[] body = new byte[Constants.CHUNKSIZE-msgbytes.length];
+		
+			    byte[] body = new byte[Constants.CHUNKSIZE];
 			    int bytesRead = bufferInput.read(body, 0, body.length);
-			    chunk.setbody(body);
+			    
+			    System.out.println("saquei : " + bytesRead);
+			    Chunk chunk = new Chunk(fileID, chunkNo, body, replication);
 			
 				CsvHandler.updateMyChunks(chunk,file.getName(),0);
 				
