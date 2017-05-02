@@ -125,7 +125,7 @@ public class Handler implements Runnable{
 	
 	private boolean isMyMessage(String id){
 		
-		if(Integer.parseInt(id)!=Peer.getPeerId()){
+		if(!id.equals(Peer.getPeerId()+"")){
 			return false;
 		}
 		
