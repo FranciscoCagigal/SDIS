@@ -7,6 +7,7 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.MulticastSocket;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.Random;
 
 import fileManager.*;
@@ -156,7 +157,6 @@ public class Handler implements Runnable{
 			}
 			else if(Peer.iHaveSpace(directorySize()+(long)body.length) || HandleFiles.fileExists("../Chunks"+Peer.getPeerId()+"/"+header[3]+"." + header[4])){
 				if(!HandleFiles.fileExists("../Chunks"+Peer.getPeerId()+"/"+header[3]+"." + header[4])){
-					
 					HandleFiles.writeFile("../Chunks"+Peer.getPeerId()+"/"+header[3]+"."+header[4], body);		
 				}
 				System.out.println("fiz update do " + header[4]);
@@ -280,17 +280,25 @@ public class Handler implements Runnable{
 		socket.close();
 	}
 	
-	private String[] getHeader(){		
-		String str = new String(packet.getData(), StandardCharsets.UTF_8);		
+	private String[] getHeader(){
+		String str = new String(packet.getData(), StandardCharsets.UTF_8);	
 		return str.substring(0, str.indexOf(Constants.CRLF)).split(" ");
 	}
 	
+	public static byte[] trim(byte[] bytes)
+	{
+	    int i = bytes.length - 1;
+	    while (i >= 0 && bytes[i] == 0)
+	    {
+	        --i;
+	    }
+
+	    return Arrays.copyOf(bytes, i + 1);
+	}
+	
 	private byte[] getBody(){
-		String str = new String(packet.getData(), StandardCharsets.UTF_8);
-		String body = str.substring(str.indexOf(Constants.CRLF)+4, str.length()).replaceAll("\0", "");
-		System.out.println("tamanho do pacote - "+str.length());
-		System.out.println("tamanho do body - "+body.length());
-		return body.getBytes(StandardCharsets.UTF_8);		
+		String lol = new String(packet.getData(), StandardCharsets.UTF_8);
+		return Arrays.copyOfRange(trim(packet.getData()), 4+lol.substring(0, lol.indexOf(Constants.CRLF)).length(), trim(packet.getData()).length);	
 	}
 	
 }

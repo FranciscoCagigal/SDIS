@@ -11,6 +11,7 @@ import java.util.List;
 
 import fileManager.Chunk;
 import fileManager.CsvHandler;
+import listeners.Handler;
 import peer.Peer;
 
 public class ChunkRestore implements Runnable {
@@ -78,7 +79,7 @@ public class ChunkRestore implements Runnable {
 			file.createNewFile();
 			FileOutputStream fos = new FileOutputStream(file,false);
 			for(byte[] data: chunkData){
-				fos.write(new String(data).replaceAll("\0", "").getBytes());
+				fos.write(Handler.trim(data));
 			}
 			
 			fos.close();

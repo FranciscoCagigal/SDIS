@@ -56,7 +56,8 @@ public class Message {
 		message+= Constants.CRLF + Constants.CRLF;
 		
 		if(version.equals("1.0")){
-			byte[] buffer = concatBytes(message.getBytes(),chunk.getChunkData());		
+			byte[] buffer = concatBytes(message.getBytes(StandardCharsets.UTF_8),chunk.getChunkData());	
+			System.out.println("tamanho do restore " + buffer.length + " " + chunk.getChunkNumber() + " tamanho " + chunk.getChunkData().length);
 			return buffer;	
 		}else return message.getBytes(StandardCharsets.UTF_8);
 		

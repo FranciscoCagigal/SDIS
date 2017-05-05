@@ -1,4 +1,0 @@
-separate file import and putchunk protocols
-
-implement information storage in non-volatile memory
-
