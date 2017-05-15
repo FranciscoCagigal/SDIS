@@ -41,11 +41,12 @@ public class ChunkBackup implements Runnable{
 			}
 		}  
 	}
-			 
+		
+	//deixa de existir
 	private void sendToMDB(byte[] buffer) throws IOException {
-		DatagramPacket packet = new DatagramPacket(buffer, buffer.length, Peer.getMdbAddress(),Peer.getMdbPort());
+		//DatagramPacket packet = new DatagramPacket(buffer, buffer.length, Peer.getMdbAddress(),Peer.getMdbPort());
 		MulticastSocket socket = new MulticastSocket();
-		socket.send(packet);
+		//socket.send(packet);
 		socket.close();
 	}
 }

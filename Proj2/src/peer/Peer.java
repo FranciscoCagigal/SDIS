@@ -33,19 +33,16 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 	private static int peerId;
 	private static String remoteObject;
 	
-	private static InetAddress mcAddress, mdbAddress, mdrAddress;
+	private static InetAddress mcAddress;
 	private static int mcPort;
-	private static int mdbPort;
-	private static int mdrPort;
 	
 	private static MulticastSocket mc;
-	private static MulticastSocket mdb;
-	private static MulticastSocket mdr;
 	
+	//proj2
 	private static Boolean imMaster = false;
 	private static InetAddress masterIP=null;
 	private static int masterPort=0;
-	
+	private static long startTime;
 	
 	//restore	
 	private static HashMap<Chunk,Boolean>waitingToBeReceived = new HashMap<Chunk,Boolean>();
@@ -62,10 +59,11 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 	private static HashMap<String,Integer> deleteenh = new  HashMap<String,Integer>();
 	
 	//threads
-	private static Runnable mc1,mc2,mc3;
+	private static Runnable mc1;
 	
 	protected Peer() throws RemoteException {
 		super();
+		startTime= System.currentTimeMillis();
 	}
 
 	public static void main(String[] args) throws UnknownHostException, RemoteException, MalformedURLException, AlreadyBoundException{
@@ -94,8 +92,8 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 	
 	private static boolean validateArgs(String[] args) throws UnknownHostException{
 		
-		if(args.length!=9){
-			System.out.println("Usage: Peer <protocol version> <peerID> <service access point> <mc address> <mc port> <mdb address> <mdb port> <mdr address> <mdr port> ");
+		if(args.length!=5){
+			System.out.println("Usage: Peer <protocol version> <peerID> <service access point> <mc address> <mc port>");
 			return false;
 		}
 		
@@ -105,13 +103,13 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 		
 		mcAddress=InetAddress.getByName(args[3]);
 		mcPort=Integer.parseInt(args[4]);
-		mdbAddress=InetAddress.getByName(args[5]);
-		mdbPort=Integer.parseInt(args[6]);
-		mdrAddress=InetAddress.getByName(args[7]);
-		mdrPort=Integer.parseInt(args[8]);
 		
 		return true;
 		
+	}
+	
+	public static long getTime(){
+		return startTime;
 	}
 	
 	public static void setMasterAddress(InetAddress ip){
@@ -139,19 +137,9 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 			mc1=new Multicast(mc);
 			new Thread(mc1).start();
 			
-			mdb = new MulticastSocket(mdbPort);
-			mdb.joinGroup(mdbAddress);
-			mc2=new MulticastBackup(mdb);
-			new Thread(mc2).start();
-			
-			mdr = new MulticastSocket(mdrPort);
-			mdr.joinGroup(mdrAddress);
-			mc3=new MulticastRestore(mdr);
-			new Thread(mc3).start();
-			
 			createDirs();
 			
-			System.out.println("Added to all multicast groups");
+			System.out.println("Added to multicast group");
 			
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -248,28 +236,12 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 		Peer.peerId = peerId;
 	}
 	
-	public static InetAddress getMdbAddress(){
-		return mdbAddress;
-	}
-	
-	public static int getMdbPort(){
-		return mdbPort;
-	}
-	
 	public static InetAddress getMcAddress(){
 		return mcAddress;
 	}
 	
 	public static int getMcPort(){
 		return mcPort;
-	}
-	
-	public static InetAddress getMdrAddress(){
-		return mdrAddress;
-	}
-	
-	public static int getMdrPort(){
-		return mdrPort;
 	}
 	
 	//restore: initiator host
@@ -397,10 +369,6 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 	public static void reclaimTobeSentWasRcvd(Chunk chunk){
 		reclaimToBeSent.remove(chunk);
 		reclaimToBeSent.put(chunk,true);
-	}
-	
-	public static Runnable getMDRlistener(){
-		return mc3;
 	}
 	
 	private static void reclaimEnh(){

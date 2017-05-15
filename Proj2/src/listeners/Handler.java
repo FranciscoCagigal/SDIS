@@ -5,7 +5,6 @@ import java.io.File;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
-import java.net.InetAddress;
 import java.net.MulticastSocket;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
@@ -21,6 +20,7 @@ public class Handler implements Runnable{
 
 	private DatagramPacket packet;
 	private Chunk chunk;
+	private Boolean sendCanddate=true;
 	
 	public Handler(DatagramPacket packet1){
 		packet=packet1;
@@ -64,16 +64,35 @@ public class Handler implements Runnable{
 			case Constants.COMMAND_BEGINELECTION:
 				election(header);
 				break;
+			case Constants.COMMAND_DISPUTEMASTER:
+				electionCandidate(header);
+				break;
 			default:
 		}
 				
 	}
 	
+	private void electionCandidate(String[] header){
+		if(Long.parseLong(header[2])<Peer.getTime()){
+			Peer.setMasterAddress(packet.getAddress());
+			Peer.setMasterPort(packet.getPort());
+			sendCanddate=false;
+		}
+	}
+	
 	private void election(String[] header){
+		sendCanddate=true;
 		Random rnd = new Random();
 		try {
 			Thread.sleep(rnd.nextInt(401));
+			if(sendCanddate){
+				Message message = new Message(null,Peer.getVersion());
+				sendToMc(message.disputeMaster());
+			}
 		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
@@ -303,15 +322,17 @@ public class Handler implements Runnable{
 		socket.close();
 	}
 	
+	//deixa de existir
 	private void sendToMDR(byte[] buffer) throws IOException{
-		DatagramPacket packet = new DatagramPacket(buffer, buffer.length, Peer.getMdrAddress(),Peer.getMdrPort());
+		//DatagramPacket packet = new DatagramPacket(buffer, buffer.length, Peer.getMdrAddress(),Peer.getMdrPort());
 		MulticastSocket socket = new MulticastSocket();		
 		socket.send(packet);
 		socket.close();
 	}
 	
+	//deixa de existir
 	private void sendToMDB(byte[] buffer) throws IOException{
-		DatagramPacket packet = new DatagramPacket(buffer, buffer.length, Peer.getMdrAddress(),Peer.getMdrPort());
+	//	DatagramPacket packet = new DatagramPacket(buffer, buffer.length, Peer.getMdrAddress(),Peer.getMdrPort());
 		MulticastSocket socket = new MulticastSocket();		
 		socket.send(packet);
 		socket.close();

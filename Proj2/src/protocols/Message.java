@@ -24,6 +24,15 @@ public class Message {
 		return buffer;
 	}
 	
+	public byte[] disputeMaster(){
+		String message=Constants.COMMAND_DISPUTEMASTER+" "+Peer.getVersion() + " ";
+		message+=Peer.getTime()+" ";
+		message+= Constants.CRLF + Constants.CRLF;
+		byte[] buffer = message.getBytes(StandardCharsets.UTF_8);
+		
+		return buffer;
+	}
+	
 	protected byte[] acknowledgeMaster(){
 		String message=Constants.COMMAND_IMMASTER+" "+Peer.getVersion() + " ";
 		message+= Constants.CRLF + Constants.CRLF;
