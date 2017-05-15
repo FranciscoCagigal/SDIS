@@ -16,5 +16,8 @@ public interface Constants {
 	public static final String COMMAND_DELETE = "DELETE";
 	public static final String COMMAND_DELETED = "DELETED";
 	public static final String COMMAND_REMOVED = "REMOVED";
+	public static final String COMMAND_FINDMASTER = "FINDMASTER";
+	public static final String COMMAND_IMMASTER = "IMMASTER";
+	public static final String COMMAND_BEGINELECTION = "BEGINELECTION";
 
 }

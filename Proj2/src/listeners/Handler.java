@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.net.InetAddress;
 import java.net.MulticastSocket;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
@@ -54,9 +55,45 @@ public class Handler implements Runnable{
 			case Constants.COMMAND_DELETED:
 				deleted(header);
 				break;
+			case Constants.COMMAND_FINDMASTER:
+				findMaster();
+				break;
+			case Constants.COMMAND_IMMASTER:
+				foundMaster();
+				break;		
+			case Constants.COMMAND_BEGINELECTION:
+				election(header);
+				break;
 			default:
 		}
 				
+	}
+	
+	private void election(String[] header){
+		Random rnd = new Random();
+		try {
+			Thread.sleep(rnd.nextInt(401));
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	private void foundMaster(){	
+		Peer.setMasterAddress(packet.getAddress());
+		Peer.setMasterPort(packet.getPort());
+	}
+	
+	private void findMaster(){
+		if(Peer.amIMaster()){
+			Message message = new Message(null,Peer.getVersion());
+			try {
+				sendToMc(message.findMaster());
+			} catch (IOException e) {
+				System.out.println("erro ao enviar IMMASTER");
+				e.printStackTrace();
+			}
+		}
 	}
 	
 	private void restoreChunks(String[] header){
@@ -85,7 +122,7 @@ public class Handler implements Runnable{
 					if(header[1].equals("2.0")){
 						Message message = new Message(new Chunk(header[3],counter,null,0),"2.0");
 						try {
-							sendToCM(message.createDeleted());
+							sendToMc(message.createDeleted());
 						} catch (IOException e) {
 							// TODO Auto-generated catch block
 							e.printStackTrace();
@@ -166,7 +203,7 @@ public class Handler implements Runnable{
 				Random rnd = new Random();
 				try {
 					Thread.sleep(rnd.nextInt(401));
-					sendToCM(message.createStored());
+					sendToMc(message.createStored());
 				} catch (Exception e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -184,7 +221,7 @@ public class Handler implements Runnable{
 					if((repl=Peer.getBackupEnhancement(header[3]+"."+header[4]))<Integer.parseInt(header[5])){
 						Peer.removeBackupEnhancement(header[3]+"."+header[4]);
 						Message message = new Message(chunk,header[1]);
-						sendToCM(message.createStored());
+						sendToMc(message.createStored());
 						System.out.println("vou guardar - " + chunk.getChunkNumber() + " - "+ (repl+1));
 						CsvHandler.updateChunkRepl(chunk,2,repl+1);
 						if(!HandleFiles.fileExists("../Chunks"+Peer.getPeerId()+"/"+header[3]+"." + header[4])){							
@@ -259,7 +296,7 @@ public class Handler implements Runnable{
 		}
 	}
 	
-	private void sendToCM(byte[] buffer) throws IOException{
+	public static void sendToMc(byte[] buffer) throws IOException{
 		DatagramPacket packet = new DatagramPacket(buffer, buffer.length, Peer.getMcAddress(),Peer.getMcPort());
 		MulticastSocket socket = new MulticastSocket();
 		socket.send(packet);

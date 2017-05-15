@@ -42,6 +42,11 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 	private static MulticastSocket mdb;
 	private static MulticastSocket mdr;
 	
+	private static Boolean imMaster = false;
+	private static InetAddress masterIP=null;
+	private static int masterPort=0;
+	
+	
 	//restore	
 	private static HashMap<Chunk,Boolean>waitingToBeReceived = new HashMap<Chunk,Boolean>();
 	private static HashMap<Chunk,Boolean>waitingToBeSent = new HashMap<Chunk,Boolean>();
@@ -107,6 +112,22 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 		
 		return true;
 		
+	}
+	
+	public static void setMasterAddress(InetAddress ip){
+		masterIP=ip;
+	}
+	
+	public static void setMasterPort(int port){
+		masterPort=port;
+	}
+	
+	public static InetAddress getMasterAddress(){
+		return masterIP;
+	}
+	
+	public static int getMasterPort(){
+		return masterPort;
 	}
 	
 	private static void joinGroups(){
@@ -388,6 +409,10 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 			Runnable run=new ChunkBackup(chunk,"1.0");
 			new Thread(run).start();
 		}
+	}
+	
+	public static Boolean amIMaster(){
+		return imMaster;
 	}
 	
 }

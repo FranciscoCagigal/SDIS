@@ -16,6 +16,30 @@ public class Message {
 		version=versionProtocol;
 	}
 	
+	public byte[] findMaster(){
+		String message=Constants.COMMAND_FINDMASTER+" "+Peer.getVersion() + " ";
+		message+= Constants.CRLF + Constants.CRLF;
+		byte[] buffer = message.getBytes(StandardCharsets.UTF_8);
+		
+		return buffer;
+	}
+	
+	protected byte[] acknowledgeMaster(){
+		String message=Constants.COMMAND_IMMASTER+" "+Peer.getVersion() + " ";
+		message+= Constants.CRLF + Constants.CRLF;
+		byte[] buffer = message.getBytes(StandardCharsets.UTF_8);
+		
+		return buffer;
+	}
+	
+	protected byte[] beginElection(){
+		String message=Constants.COMMAND_BEGINELECTION+" "+Peer.getVersion() + " ";
+		message+= Constants.CRLF + Constants.CRLF;
+		byte[] buffer = message.getBytes(StandardCharsets.UTF_8);
+		
+		return buffer;
+	}
+	
 	protected byte[] createRemoved(){
 		String message=Constants.COMMAND_REMOVED+" "+Peer.getVersion() + " ";
 		message+=Peer.getPeerId() + " " ;
