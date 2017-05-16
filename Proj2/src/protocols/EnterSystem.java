@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.MulticastSocket;
 
+import listeners.Handler;
 import peer.Peer;
 
 public class EnterSystem {
@@ -19,13 +20,17 @@ public class EnterSystem {
 		int nrTries=0;
 		while(nrTries<5){
 			try {
-				sendToMC(message.findMaster());
+				Handler.sendToMc(message.findMaster());
 				Thread.sleep(1000);
+				System.out.println("oi");
 			} catch (IOException e) {
 				System.out.println("Falha ao enviar FINDMASTER");
 				e.printStackTrace();
 			} catch (InterruptedException e) {
 				e.printStackTrace();
+			}
+			if(Peer.getMasterAddress()!=null){
+				break;
 			}
 			nrTries++;
 			//TODO if clause to stop
@@ -33,15 +38,10 @@ public class EnterSystem {
 		}
 		
 		if(Peer.getMasterAddress()==null){
-			//ELEIÇOES CARALHO
+			Election election = new Election(mc);
+			election.startElection();
 		}
 		
-	}
-	
-	private void sendToMC(byte[] buffer) throws IOException {
-		DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
-		mc.send(packet);
-		mc.close();
 	}
 	
 }

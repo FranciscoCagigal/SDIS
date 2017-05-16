@@ -20,7 +20,7 @@ public class Handler implements Runnable{
 
 	private DatagramPacket packet;
 	private Chunk chunk;
-	private Boolean sendCanddate=true;
+	private static Long masterTime = Long.MAX_VALUE;
 	
 	public Handler(DatagramPacket packet1){
 		packet=packet1;
@@ -30,6 +30,9 @@ public class Handler implements Runnable{
 	public void run() {
 		
 		String header[] = getHeader();
+		
+		System.out.println(Arrays.toString(header));
+
 		switch(header[0].toUpperCase()){
 			case Constants.COMMAND_PUT: 
 				chunk = new Chunk(header[3],Integer.parseInt(header[4]),null,Integer.parseInt(header[5]));
@@ -76,16 +79,25 @@ public class Handler implements Runnable{
 		if(Long.parseLong(header[2])<Peer.getTime()){
 			Peer.setMasterAddress(packet.getAddress());
 			Peer.setMasterPort(packet.getPort());
-			sendCanddate=false;
+			masterTime=Long.parseLong(header[2]);
+			System.out.println("mastertime " + masterTime);
+			Peer.setImMaster(false);
+		}else if(masterTime==Long.MAX_VALUE && Long.parseLong(header[2])==Peer.getTime()){
+			System.out.println("sou peer master " + masterTime + " " + Peer.getTime());
+			Peer.setImMaster(true);
 		}
 	}
 	
 	private void election(String[] header){
-		sendCanddate=true;
+		System.out.println("entrei");
+		//masterTime = Long.MAX_VALUE;
+		
 		Random rnd = new Random();
 		try {
-			Thread.sleep(rnd.nextInt(401));
-			if(sendCanddate){
+			Thread.sleep(rnd.nextInt(1000));
+			System.out.println("vou enviar o meu master " + masterTime + " " + Peer.getTime());
+			
+			if(masterTime>Peer.getTime()){
 				Message message = new Message(null,Peer.getVersion());
 				sendToMc(message.disputeMaster());
 			}
@@ -98,7 +110,7 @@ public class Handler implements Runnable{
 		}
 	}
 	
-	private void foundMaster(){	
+	private void foundMaster(){
 		Peer.setMasterAddress(packet.getAddress());
 		Peer.setMasterPort(packet.getPort());
 	}
@@ -107,7 +119,7 @@ public class Handler implements Runnable{
 		if(Peer.amIMaster()){
 			Message message = new Message(null,Peer.getVersion());
 			try {
-				sendToMc(message.findMaster());
+				sendToMc(message.acknowledgeMaster());
 			} catch (IOException e) {
 				System.out.println("erro ao enviar IMMASTER");
 				e.printStackTrace();

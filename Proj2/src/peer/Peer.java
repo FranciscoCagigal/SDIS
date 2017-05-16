@@ -21,6 +21,7 @@ import listeners.MulticastBackup;
 import listeners.MulticastRestore;
 import protocols.ChunkBackup;
 import protocols.ChunkRestore;
+import protocols.EnterSystem;
 import protocols.FileDeletion;
 import protocols.ReadFile;
 import protocols.ServiceState;
@@ -72,22 +73,31 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 			return;
 		}
 		
-		Peer peer= new Peer();
+		//Peer peer= new Peer();
 		
-		Registry registry = LocateRegistry.getRegistry();
+		//Registry registry = LocateRegistry.getRegistry();
 		
-		IPeer iserver= (IPeer) peer;
+		//IPeer iserver= (IPeer) peer;
 		
-		registry.rebind(remoteObject, iserver);		
+		//registry.rebind(remoteObject, iserver);
+		
+		startTime= System.currentTimeMillis();
 		
 		joinGroups();
 		
 		System.out.println("Server ready");
 		
-		if(!protocolVersion.equals("1.0")){
-			reclaimEnh();
-		}
+		EnterSystem entry = new EnterSystem(mc);
+		entry.findMaster();
 		
+		//if(!protocolVersion.equals("1.0")){
+			//reclaimEnh();
+		//}
+		
+	}
+	
+	public static void setImMaster(Boolean value){
+		imMaster=value;
 	}
 	
 	private static boolean validateArgs(String[] args) throws UnknownHostException{

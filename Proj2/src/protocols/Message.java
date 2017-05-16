@@ -33,7 +33,7 @@ public class Message {
 		return buffer;
 	}
 	
-	protected byte[] acknowledgeMaster(){
+	public byte[] acknowledgeMaster(){
 		String message=Constants.COMMAND_IMMASTER+" "+Peer.getVersion() + " ";
 		message+= Constants.CRLF + Constants.CRLF;
 		byte[] buffer = message.getBytes(StandardCharsets.UTF_8);
