@@ -10,8 +10,102 @@ import java.util.Scanner;
 
 import peer.Peer;
 import protocols.Constants;
+import user.User;
 
 public class CsvHandler {
+	
+	public synchronized static void createUser(User user){
+		File userData = new File("../metadata"+Peer.getPeerId()+"/Users.csv");
+
+		try {
+			FileWriter fileWriter = new FileWriter(userData, false);
+			fileWriter.append(user.getUsername());
+			fileWriter.append(Constants.COMMA_DELIMITER);
+			fileWriter.append(user.getPassword());
+			fileWriter.append(Constants.COMMA_DELIMITER);
+			fileWriter.append(user.getPriorityLevel().toString());
+			fileWriter.append(Constants.NEW_LINE_SEPARATOR);
+			fileWriter.close();
+		} 
+		
+		catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	public synchronized static boolean checkUser(String name){
+		File userData = new File("../metadata"+Peer.getPeerId()+"/Users.csv");
+		Scanner scanner;
+		
+		try {
+			scanner = new Scanner(userData);
+			scanner.useDelimiter(Constants.NEW_LINE_SEPARATOR);
+			while(scanner.hasNext()){
+				String str=scanner.next();
+				String[] divided = str.split(Constants.COMMA_DELIMITER);
+				if (divided[0].equals(name)) {
+					scanner.close();
+					return true;
+				}
+			}
+			
+			
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		return false;
+	}
+	
+	public synchronized static String getUserPassword(String name){
+		File userData = new File("../metadata"+Peer.getPeerId()+"/Users.csv");
+		Scanner scanner;
+		
+		try {
+			scanner = new Scanner(userData);
+			scanner.useDelimiter(Constants.NEW_LINE_SEPARATOR);
+			while(scanner.hasNext()){
+				String str=scanner.next();
+				String[] divided = str.split(Constants.COMMA_DELIMITER);
+				if (divided[0].equals(name)) {
+					String password = divided[1];
+					scanner.close();
+					return password;
+				}
+			}
+			scanner.close();
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
+	public synchronized static String getUserLevel(String name){
+		File userData = new File("../metadata"+Peer.getPeerId()+"/Users.csv");
+		Scanner scanner;
+		
+		try {
+			scanner = new Scanner(userData);
+			scanner.useDelimiter(Constants.NEW_LINE_SEPARATOR);
+			while(scanner.hasNext()){
+				String str=scanner.next();
+				String[] divided = str.split(Constants.COMMA_DELIMITER);
+				if (divided[0].equals(name)) {
+					String level = divided[2];
+					scanner.close();
+					return level;
+				}
+			}
+			scanner.close();
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return null;
+	}
 	
 	public synchronized static void deleteChunks(String fileId,String path){
 		File metaData = new File(path);

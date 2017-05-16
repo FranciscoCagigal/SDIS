@@ -26,6 +26,7 @@ import protocols.FileDeletion;
 import protocols.ReadFile;
 import protocols.ServiceState;
 import protocols.SpaceReclaiming;
+import user.User;
 
 public class Peer extends UnicastRemoteObject  implements IPeer {
 
@@ -103,7 +104,7 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 	private static boolean validateArgs(String[] args) throws UnknownHostException{
 		
 		if(args.length!=5){
-			System.out.println("Usage: Peer <protocol version> <peerID> <service access point> <mc address> <mc port>");
+			System.out.println("Usage: Peer <peerID> <password> <service access point> <mc address> <mc port> <sslport>");
 			return false;
 		}
 		
@@ -196,25 +197,25 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 	}
 
 	@Override
-	public void backup(String version,File file, int replDeg) throws RemoteException {
-		Runnable run=new ReadFile(version,file,replDeg);
+	public void backup(User user,File file, int replDeg) throws RemoteException {
+		Runnable run=new ReadFile("1.0",file,replDeg);
 		new Thread(run).start();
 	}
 
 	@Override
-	public void restore(String version,String filename) throws RemoteException{
-		Runnable run=new ChunkRestore(version,filename);
+	public void restore(User user,String filename) throws RemoteException{
+		Runnable run=new ChunkRestore("1.0",filename);
 		new Thread(run).start();		
 	}
 
 	@Override
-	public void delete(String version,String filename) throws RemoteException{
-		Runnable run=new FileDeletion(version,filename);
+	public void delete(User user,String filename) throws RemoteException{
+		Runnable run=new FileDeletion("1.0",filename);
 		new Thread(run).start();
 	}
 
 	@Override
-	public void reclaim(int space) throws RemoteException{
+	public void reclaim(User user, int space) throws RemoteException{
 		diskSpace=space*1000;
 		CsvHandler.updateMemory(space);
 		Runnable run=new SpaceReclaiming();
@@ -391,6 +392,12 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 	
 	public static Boolean amIMaster(){
 		return imMaster;
+	}
+
+	@Override
+	public void createUser(String name, String password, String level) throws RemoteException {
+		User user = new User(name, password, level);
+		CsvHandler.createUser(user);
 	}
 	
 }
