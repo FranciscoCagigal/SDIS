@@ -44,7 +44,6 @@ public class ReadFile implements Runnable {
 			    byte[] body = new byte[Constants.CHUNKSIZE];
 			    int bytesRead = bufferInput.read(body, 0, body.length);
 			    
-			    System.out.println("saquei : " + bytesRead);
 			    Chunk chunk = new Chunk(fileID, chunkNo, body, replication);
 			
 				CsvHandler.updateMyChunks(chunk,file.getName(),0);
@@ -52,6 +51,8 @@ public class ReadFile implements Runnable {
 				Runnable run=new ChunkBackup(chunk,version);
 				new Thread(run).start();
 			    
+				Thread.sleep(1000);
+				
 			    if (bytesRead > 0) {
 			    	totalBytesRead += bytesRead;
 			    	chunkNo++;
@@ -61,6 +62,9 @@ public class ReadFile implements Runnable {
 			bufferInput.close();
 			
 		} catch (NoSuchAlgorithmException | IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}

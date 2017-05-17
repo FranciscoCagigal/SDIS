@@ -34,7 +34,7 @@ public class Handler implements Runnable{
 		System.out.println(Arrays.toString(header));
 
 		switch(header[0].toUpperCase()){
-			case Constants.COMMAND_PUT: 
+			case Constants.COMMAND_BACKUP: 
 				chunk = new Chunk(header[3],Integer.parseInt(header[4]),null,Integer.parseInt(header[5]));
 				putChunkHandler(header);
 				break;
@@ -59,10 +59,10 @@ public class Handler implements Runnable{
 				deleted(header);
 				break;
 			case Constants.COMMAND_FINDMASTER:
-				findMaster();
+				findMaster(header);
 				break;
 			case Constants.COMMAND_IMMASTER:
-				foundMaster();
+				foundMaster(header);
 				break;		
 			case Constants.COMMAND_BEGINELECTION:
 				election(header);
@@ -80,23 +80,18 @@ public class Handler implements Runnable{
 			Peer.setMasterAddress(packet.getAddress());
 			Peer.setMasterPort(packet.getPort());
 			masterTime=Long.parseLong(header[2]);
-			System.out.println("mastertime " + masterTime);
 			Peer.setImMaster(false);
 		}else if(masterTime==Long.MAX_VALUE && Long.parseLong(header[2])==Peer.getTime()){
-			System.out.println("sou peer master " + masterTime + " " + Peer.getTime());
 			Peer.setImMaster(true);
 		}
 	}
 	
 	private void election(String[] header){
-		System.out.println("entrei");
-		//masterTime = Long.MAX_VALUE;
+		masterTime = Long.MAX_VALUE;
 		
 		Random rnd = new Random();
 		try {
 			Thread.sleep(rnd.nextInt(1000));
-			System.out.println("vou enviar o meu master " + masterTime + " " + Peer.getTime());
-			
 			if(masterTime>Peer.getTime()){
 				Message message = new Message(null,Peer.getVersion());
 				sendToMc(message.disputeMaster());
@@ -110,16 +105,17 @@ public class Handler implements Runnable{
 		}
 	}
 	
-	private void foundMaster(){
+	private void foundMaster(String[] header){
 		Peer.setMasterAddress(packet.getAddress());
-		Peer.setMasterPort(packet.getPort());
+		Peer.setMasterPort(Integer.parseInt(header[2]));
 	}
 	
-	private void findMaster(){
+	private void findMaster(String header[]){
 		if(Peer.amIMaster()){
 			Message message = new Message(null,Peer.getVersion());
 			try {
 				sendToMc(message.acknowledgeMaster());
+				Peer.addToPeers(header[1], packet.getAddress(), Integer.parseInt(header[2]));
 			} catch (IOException e) {
 				System.out.println("erro ao enviar IMMASTER");
 				e.printStackTrace();

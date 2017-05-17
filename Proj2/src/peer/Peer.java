@@ -11,6 +11,7 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.AbstractMap.SimpleEntry;
 import java.util.HashMap;
 import java.util.List;
 
@@ -19,6 +20,8 @@ import fileManager.CsvHandler;
 import listeners.Multicast;
 import listeners.MulticastBackup;
 import listeners.MulticastRestore;
+import listeners.SSL_Client;
+import listeners.SSL_Server;
 import protocols.ChunkBackup;
 import protocols.ChunkRestore;
 import protocols.EnterSystem;
@@ -45,6 +48,10 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 	private static InetAddress masterIP=null;
 	private static int masterPort=0;
 	private static long startTime;
+	private static int SSLport;
+	private static HashMap<String,SimpleEntry<InetAddress,Integer>> peers = new HashMap<String,SimpleEntry<InetAddress,Integer>>();
+	
+	private static SSL_Server server;
 	
 	//restore	
 	private static HashMap<Chunk,Boolean>waitingToBeReceived = new HashMap<Chunk,Boolean>();
@@ -74,7 +81,7 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 			return;
 		}
 		
-		//Peer peer= new Peer();
+		Peer peer= new Peer();
 		
 		//Registry registry = LocateRegistry.getRegistry();
 		
@@ -82,14 +89,21 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 		
 		//registry.rebind(remoteObject, iserver);
 		
-		startTime= System.currentTimeMillis();
-		
 		joinGroups();
+		
+		Runnable server= new SSL_Server(SSLport);
+		new Thread(server).start();
 		
 		System.out.println("Server ready");
 		
 		EnterSystem entry = new EnterSystem(mc);
 		entry.findMaster();
+		
+		System.out.println("encontrei o master");
+		
+		Runnable client = new ReadFile("1.0",new File("../Files1/test.txt"),1);
+		new Thread(client).start();
+		
 		
 		//if(!protocolVersion.equals("1.0")){
 			//reclaimEnh();
@@ -101,19 +115,28 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 		imMaster=value;
 	}
 	
+	public static void addToPeers(String id, InetAddress address, int port){
+		peers.put(id, new SimpleEntry<InetAddress,Integer>(address,port));
+	}
+	
+	public static HashMap<String,SimpleEntry<InetAddress,Integer>> getPeers(){
+		return peers;
+	}
+	
 	private static boolean validateArgs(String[] args) throws UnknownHostException{
 		
-		if(args.length!=5){
+		if(args.length!=6){
 			System.out.println("Usage: Peer <peerID> <password> <service access point> <mc address> <mc port> <sslport>");
 			return false;
 		}
 		
-		protocolVersion=args[0];
-		setPeerId(Integer.parseInt(args[1]));
+		protocolVersion=args[1]; //mudar pra password
+		setPeerId(Integer.parseInt(args[0]));
 		remoteObject=args[2];
 		
 		mcAddress=InetAddress.getByName(args[3]);
 		mcPort=Integer.parseInt(args[4]);
+		setSSLport(Integer.parseInt(args[5]));
 		
 		return true;
 		
@@ -398,6 +421,14 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 	public void createUser(String name, String password, String level) throws RemoteException {
 		User user = new User(name, password, level);
 		CsvHandler.createUser(user);
+	}
+
+	public static int getSSLport() {
+		return SSLport;
+	}
+
+	public static void setSSLport(int sSLport) {
+		SSLport = sSLport;
 	}
 	
 }

@@ -16,8 +16,20 @@ public class Message {
 		version=versionProtocol;
 	}
 	
+	public byte[] backupPeerSSL(){
+		String message="1 ";
+		message+=Peer.getPeerId() + " pass " + Constants.COMMAND_BACKUP + " ";
+		message+= chunk.getFileId()+" ";
+		message+= chunk.getChunkNumber() + " " + chunk.getReplication();
+		message+= Constants.CRLF + Constants.CRLF;
+
+		//byte[] buffer = concatBytes(message.getBytes(StandardCharsets.UTF_8),chunk.getChunkData());	
+		
+		return message.getBytes();
+	}
+	
 	public byte[] findMaster(){
-		String message=Constants.COMMAND_FINDMASTER+" "+Peer.getVersion() + " ";
+		String message=Constants.COMMAND_FINDMASTER+" "+Peer.getPeerId() + " " + Peer.getSSLport();
 		message+= Constants.CRLF + Constants.CRLF;
 		byte[] buffer = message.getBytes(StandardCharsets.UTF_8);
 		
@@ -34,7 +46,7 @@ public class Message {
 	}
 	
 	public byte[] acknowledgeMaster(){
-		String message=Constants.COMMAND_IMMASTER+" "+Peer.getVersion() + " ";
+		String message=Constants.COMMAND_IMMASTER+" "+Peer.getVersion() + " " + Peer.getSSLport();
 		message+= Constants.CRLF + Constants.CRLF;
 		byte[] buffer = message.getBytes(StandardCharsets.UTF_8);
 		
@@ -112,7 +124,7 @@ public class Message {
 	
 	public byte[] createPutChunk(){
 		
-		String message = Constants.COMMAND_PUT+ " " + version + " ";
+		String message = Constants.COMMAND_BACKUP+ " " + version + " ";
 		message+=Peer.getPeerId() + " " ;
 		message+= chunk.getFileId()+" ";
 		message+= chunk.getChunkNumber() + " ";

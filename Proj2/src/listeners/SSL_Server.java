@@ -19,11 +19,11 @@ public class SSL_Server implements Runnable{
 	@Override
 	public void run() {
 		
-		System.setProperty("javax.net.ssl.keyStore", "server.keys");
+		System.setProperty("javax.net.ssl.keyStore", "../server.keys");
         
 		System.setProperty("javax.net.ssl.keyStorePassword", "123456");
         
-		System.setProperty("javax.net.ssl.trustStore","truststore");
+		System.setProperty("javax.net.ssl.trustStore","../truststore");
         
 		System.setProperty("javax.net.ssl.trustStorePassword","123456");
 		
@@ -39,8 +39,6 @@ public class SSL_Server implements Runnable{
 		}
         
 		serverSocket.setNeedClientAuth(true);
-       
-		System.out.println(System.getProperty("javax.net.ssl.keyStore"));
 		
         while (true) {
 			
@@ -55,9 +53,8 @@ public class SSL_Server implements Runnable{
 				e.printStackTrace();
 			}
 			
-			SSL_Handler handler= new SSL_Handler(socket);
-			
-			handler.run();
+			Runnable handler= new SSL_Handler(socket);
+			new Thread(handler).start();
 		}		
 	}
 }
