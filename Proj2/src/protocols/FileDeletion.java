@@ -48,19 +48,16 @@ public class FileDeletion implements Runnable {
 		Message message = new Message(chunk,version);
 		try {
 			if(version.equals("1.0")){
-				sendToMC(message.createDelete());
+				//sendToMC(message.createDelete());
 			}else {
 				while(Peer.getDeleteEnhancement(hash)<sumOfRepl &&nrTries<5){
-					sendToMC(message.createDelete());
+					//sendToMC(message.createDelete());
 					Thread.sleep(waiting*(nrTries+1));
 					nrTries++;
 					System.out.println(Peer.getDeleteEnhancement(hash)+" - "+ sumOfRepl);
 				}
 			}
 			
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

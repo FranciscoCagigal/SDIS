@@ -9,23 +9,39 @@ import fileManager.Chunk;
 public class Message {
 	
 	private Chunk chunk;
-	private String version;
+	private String originalPeer;
 	
-	public Message (Chunk chunk1,String versionProtocol){
+	public Message (Chunk chunk1){
 		chunk=chunk1;
-		version=versionProtocol;
+	}
+	
+	public Message (Chunk chunk1, String originalPeer){
+		chunk=chunk1;
+		this.originalPeer=originalPeer;
 	}
 	
 	public byte[] backupPeerSSL(){
 		String message="1 ";
 		message+=Peer.getPeerId() + " pass " + Constants.COMMAND_BACKUP + " ";
 		message+= chunk.getFileId()+" ";
-		message+= chunk.getChunkNumber() + " " + chunk.getReplication();
+		message+= chunk.getChunkNumber() + " " + chunk.getReplication() + " " + chunk.getChunkData().length;
 		message+= Constants.CRLF + Constants.CRLF;
 
-		//byte[] buffer = concatBytes(message.getBytes(StandardCharsets.UTF_8),chunk.getChunkData());	
+		byte[] buffer = concatBytes(message.getBytes(StandardCharsets.UTF_8),chunk.getChunkData());	
 		
-		return message.getBytes();
+		return buffer;
+	}
+	
+	public byte[] backupMasterSSL(){
+		String message="2 ";
+		message+=Peer.getPeerId() + " pass " + Constants.COMMAND_BACKUP + " ";
+		message+= chunk.getFileId()+" ";
+		message+= chunk.getChunkNumber() + " " + originalPeer + " " + chunk.getChunkData().length;
+		message+= Constants.CRLF + Constants.CRLF;
+
+		byte[] buffer = concatBytes(message.getBytes(StandardCharsets.UTF_8),chunk.getChunkData());	
+		
+		return buffer;
 	}
 	
 	public byte[] findMaster(){
@@ -72,7 +88,7 @@ public class Message {
 		return buffer;
 	}
 	
-	public byte[] createDeleted(){
+	/*public byte[] createDeleted(){
 		String message=Constants.COMMAND_DELETED+" "+version + " ";
 		message+=Peer.getPeerId() + " " ;
 		message+= chunk.getFileId()+" ";
@@ -145,7 +161,7 @@ public class Message {
 		byte[] buffer = message.getBytes(StandardCharsets.UTF_8);
 		
 		return buffer;		
-	}
+	}*/
 	
 	public static byte[] concatBytes(byte[] a, byte[] b){
 		byte[] buffer = new byte[a.length + b.length];
@@ -155,6 +171,14 @@ public class Message {
 		return buffer;
 	}
 
+	public static char[] concatBytes(char[] a, char[] b){
+		char[] buffer = new char[a.length + b.length];
+		System.arraycopy(a, 0, buffer, 0, a.length);
+		System.arraycopy(b, 0, buffer, a.length, b.length);
+		
+		return buffer;
+	}
+	
 }
 
 

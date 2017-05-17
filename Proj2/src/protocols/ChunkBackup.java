@@ -22,8 +22,6 @@ public class ChunkBackup implements Runnable{
 	public void run() {
 		
 		Message message = new Message(chunk,version);
-		message.backupPeerSSL();
-		Runnable client = new SSL_Client(Peer.getMasterAddress(),Peer.getMasterPort(),message.backupPeerSSL());
-		new Thread(client).start();	
+		((SSL_Client) Peer.getClientThread()).sendMessage(message.backupPeerSSL());
 	}
 }

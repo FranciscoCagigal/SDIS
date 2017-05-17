@@ -148,12 +148,9 @@ public class Handler implements Runnable{
 					HandleFiles.eraseFile("../Chunks"+Peer.getPeerId()+"/"+header[3]+"."+counter);
 					if(header[1].equals("2.0")){
 						Message message = new Message(new Chunk(header[3],counter,null,0),"2.0");
-						try {
-							sendToMc(message.createDeleted());
-						} catch (IOException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						}
+						
+							//sendToMc(message.createDeleted());
+				
 					}
 					counter++;
 				}else break;
@@ -171,7 +168,7 @@ public class Handler implements Runnable{
 				Random rnd = new Random();
 				Thread.sleep(rnd.nextInt(401));
 				if(!Peer.wasChunkAlreadySent(chunkRestored)){
-					sendToMDR(msg.createChunk());
+					//sendToMDR(msg.createChunk());
 					if(header[1].equals("2.0")){
 						DatagramSocket tcpSocket = new DatagramSocket();
 						byte data[] = HandleFiles.readFile("../Chunks"+Peer.getPeerId()+"/"+header[3]+"."+header[4]);
@@ -230,7 +227,7 @@ public class Handler implements Runnable{
 				Random rnd = new Random();
 				try {
 					Thread.sleep(rnd.nextInt(401));
-					sendToMc(message.createStored());
+					//sendToMc(message.createStored());
 				} catch (Exception e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -248,7 +245,7 @@ public class Handler implements Runnable{
 					if((repl=Peer.getBackupEnhancement(header[3]+"."+header[4]))<Integer.parseInt(header[5])){
 						Peer.removeBackupEnhancement(header[3]+"."+header[4]);
 						Message message = new Message(chunk,header[1]);
-						sendToMc(message.createStored());
+						//sendToMc(message.createStored());
 						System.out.println("vou guardar - " + chunk.getChunkNumber() + " - "+ (repl+1));
 						CsvHandler.updateChunkRepl(chunk,2,repl+1);
 						if(!HandleFiles.fileExists("../Chunks"+Peer.getPeerId()+"/"+header[3]+"." + header[4])){							
@@ -288,16 +285,13 @@ public class Handler implements Runnable{
 						Thread.sleep(rnd.nextInt(401));
 						if(!Peer.reclaimChunkAlreadySent(chunk)){
 							Message message = new Message(chunk,header[1]);
-							sendToMDB(message.createPutChunk());
+							//sendToMDB(message.createPutChunk());
 						}
 						Peer.removeReclaimSent(chunk);
 					} catch (InterruptedException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
-					} catch (IOException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
+					} 
 				}
 			}
 		}
@@ -352,6 +346,17 @@ public class Handler implements Runnable{
 	}
 	
 	public static byte[] trim(byte[] bytes)
+	{
+	    int i = bytes.length - 1;
+	    while (i >= 0 && bytes[i] == 0)
+	    {
+	        --i;
+	    }
+
+	    return Arrays.copyOf(bytes, i + 1);
+	}
+	
+	public static char[] trim(char[] bytes)
 	{
 	    int i = bytes.length - 1;
 	    while (i >= 0 && bytes[i] == 0)

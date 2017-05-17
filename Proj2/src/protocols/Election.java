@@ -18,8 +18,16 @@ public class Election {
 		Message message = new Message(null,Peer.getVersion());
 		try {
 			Handler.sendToMc(message.beginElection());
+			
+			while(Peer.getMasterAddress()==null && !Peer.amIMaster()){
+				Thread.sleep(1000);
+			}
+			
 		} catch (IOException e) {
 			System.out.println("erro ao enviar BEGINELECTION");
+			e.printStackTrace();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}

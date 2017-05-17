@@ -12,31 +12,25 @@ import java.util.Arrays;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 
+import peer.Peer;
 import protocols.Message;
 
 public class SSL_Client implements Runnable {
 
 	private static SSLSocket socket;
-	
-	private String sourcePeer;
-	private InetAddress address;
-	private int port;
-	byte[] message;
 
-	public SSL_Client(String sourcePeer, InetAddress address, int port) {
-		this.sourcePeer = sourcePeer;
-		this.address = address;
-		this.port = port;
-	}
+	private static PrintWriter out;
+	private static BufferedReader in;
+	private String host;
+	private int port;
 	
-	public SSL_Client(InetAddress address, int port,byte[] message) {
-		this.address = address;
-		this.port = port;
-		this.message=message;
+	public SSL_Client(String host, int port) {
+		this.host=host;
+		this.port=port;
 	}
 
 	@Override
-	public void run() {
+	public void  run() {
 		System.setProperty("javax.net.ssl.keyStore","../client.keys");
 		
 		System.setProperty("javax.net.ssl.keyStorePassword","123456");
@@ -49,25 +43,49 @@ public class SSL_Client implements Runnable {
 		
 		try {
 			
-			socket = (SSLSocket) ssf.createSocket(address.getHostName(), port);
-			
-			
-			PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
-			
-			BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-			
-			out.println(new String(message, StandardCharsets.UTF_8));
-			
+			socket = (SSLSocket) ssf.createSocket(host,port);			
+			out = new PrintWriter(socket.getOutputStream(), true);			
+			in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+					
 			// display response
-			String received = in.readLine();
+			String received;
 			
-			System.out.println("Request answer: " + received);
+			System.out.println("vou iniciar cliente ");
 			
-			System.out.println("vou fechar " + new String(message, StandardCharsets.UTF_8));
-			socket.close();
+			while(true){
+			//	received = in.readLine();
+				//System.out.println("Request answer: " + received);
+			}
+			
+			
+			
 		} catch (UnknownHostException e) {
+			System.out.println("vou sair do ciclo ");
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		} catch (IOException e) {
+			System.out.println("vou sair do ciclo ");
+			System.out.println("vou fechar ");
+			try {
+				socket.close();
+			} catch (IOException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+			e.printStackTrace();
+		}
+	}
+	
+	public synchronized void sendMessage(byte[] message){
+		if(message==null)
+			System.out.println("MENSAGEM ");
+		if (out==null)
+			System.out.println("outtttttt ");
+		out.println(new String(message));
+		String received;
+		try {
+			received = in.readLine();
+			System.out.println("Request answer: " + received);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

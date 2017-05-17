@@ -41,11 +41,8 @@ public class ChunkRestore implements Runnable {
 			if(version.equals("1.0")){
 				while(!Peer.hasChunkBeenReceived(chunk)){
 					 try {
-						sendToMC(message.createGetChunk());
+						//sendToMC(message.createGetChunk());
 						Thread.sleep(1000);
-					} catch (IOException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
 					} catch (InterruptedException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
@@ -55,7 +52,7 @@ public class ChunkRestore implements Runnable {
 				chunkData.add(Peer.getDataFromReceivedChunk(chunk));
 			}else if(version.equals("2.0")){
 					try {
-						sendToMC(message.createGetChunk());
+						//sendToMC(message.createGetChunk());
 						DatagramSocket ServerSocket = new DatagramSocket(4004);
 						byte[] buffer=new byte[Constants.CHUNKSIZE];
 						DatagramPacket p = new DatagramPacket(buffer, buffer.length);

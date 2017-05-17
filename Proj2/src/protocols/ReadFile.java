@@ -51,7 +51,7 @@ public class ReadFile implements Runnable {
 				Runnable run=new ChunkBackup(chunk,version);
 				new Thread(run).start();
 			    
-				Thread.sleep(1000);
+				//Thread.sleep(1000);
 				
 			    if (bytesRead > 0) {
 			    	totalBytesRead += bytesRead;
@@ -64,10 +64,10 @@ public class ReadFile implements Runnable {
 		} catch (NoSuchAlgorithmException | IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		} catch (InterruptedException e) {
+		} /*catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}
+		}*/
 		
 	}
 

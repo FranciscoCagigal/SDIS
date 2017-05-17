@@ -49,7 +49,8 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 	private static int masterPort=0;
 	private static long startTime;
 	private static int SSLport;
-	private static HashMap<String,SimpleEntry<InetAddress,Integer>> peers = new HashMap<String,SimpleEntry<InetAddress,Integer>>();
+	private static Runnable clientThread;
+	private static HashMap<String,Runnable> peerThreads = new HashMap<String,Runnable>();
 	
 	private static SSL_Server server;
 	
@@ -99,10 +100,19 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 		EnterSystem entry = new EnterSystem(mc);
 		entry.findMaster();
 		
+		if(!imMaster){
+			clientThread = new SSL_Client(Peer.getMasterAddress().getHostName(),Peer.getMasterPort());
+			new Thread(clientThread).start();
+		}else{
+			peerThreads.put(peerId+"", null);
+		}
+		
 		System.out.println("encontrei o master");
 		
-		Runnable client = new ReadFile("1.0",new File("../Files1/test.txt"),1);
-		new Thread(client).start();
+		if(!imMaster){
+		Runnable op = new ReadFile("1.0",new File("../Files1/test.txt"),1);
+		new Thread(op).start();
+		}
 		
 		
 		//if(!protocolVersion.equals("1.0")){
@@ -111,16 +121,22 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 		
 	}
 	
+	public static Runnable getClientThread(){
+		return clientThread;
+	}
+	
 	public static void setImMaster(Boolean value){
 		imMaster=value;
 	}
 	
 	public static void addToPeers(String id, InetAddress address, int port){
-		peers.put(id, new SimpleEntry<InetAddress,Integer>(address,port));
+		Runnable client = new SSL_Client(address.getHostName(),port);
+		new Thread(client).start();
+		peerThreads.put(id, client);
 	}
 	
-	public static HashMap<String,SimpleEntry<InetAddress,Integer>> getPeers(){
-		return peers;
+	public static HashMap<String,Runnable> getPeers(){
+		return peerThreads;
 	}
 	
 	private static boolean validateArgs(String[] args) throws UnknownHostException{
