@@ -15,12 +15,10 @@ public class ReadFile implements Runnable {
 
 	private File file;
 	private int replication;
-	private String version;
 	
 	public ReadFile(String versionProtocol,File f, int replication) {
 		this.file = f;
 		this.replication = replication;
-		version=versionProtocol;
 	}
 	
 	public void run() {
@@ -45,13 +43,9 @@ public class ReadFile implements Runnable {
 			    int bytesRead = bufferInput.read(body, 0, body.length);
 			    
 			    Chunk chunk = new Chunk(fileID, chunkNo, body, replication);
-			
-				CsvHandler.updateMyChunks(chunk,file.getName(),0);
 				
-				Runnable run=new ChunkBackup(chunk,version);
+				Runnable run=new ChunkBackup(chunk,file.getName());
 				new Thread(run).start();
-			    
-				//Thread.sleep(1000);
 				
 			    if (bytesRead > 0) {
 			    	totalBytesRead += bytesRead;
@@ -64,11 +58,7 @@ public class ReadFile implements Runnable {
 		} catch (NoSuchAlgorithmException | IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		} /*catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}*/
-		
+		} 		
 	}
 
 }

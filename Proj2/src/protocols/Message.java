@@ -10,6 +10,7 @@ public class Message {
 	
 	private Chunk chunk;
 	private String originalPeer;
+	private String realName;
 	
 	public Message (Chunk chunk1){
 		chunk=chunk1;
@@ -20,11 +21,44 @@ public class Message {
 		this.originalPeer=originalPeer;
 	}
 	
+	public Message (Chunk chunk1, String originalPeer, String realName){
+		chunk=chunk1;
+		this.originalPeer=originalPeer;
+		this.realName=realName;
+	}
+	
+	public byte[] deletePeerRestore(){
+		String message="1 ";
+		message+=Peer.getPeerId() + " pass " + Constants.COMMAND_RESTORE + " ";
+		message+= chunk.getFileId();
+		message+= Constants.CRLF + Constants.CRLF;
+		
+		return message.getBytes();
+	}
+	
+	public byte[] deletePeerSSL(){
+		String message="1 ";
+		message+=Peer.getPeerId() + " pass " + Constants.COMMAND_DELETE + " ";
+		message+= chunk.getFileId()+" ";
+		message+= Constants.CRLF + Constants.CRLF;
+		
+		return message.getBytes();
+	}
+	
+	public byte[] deleteMasterSSL(){
+		String message="2 ";
+		message+= Peer.getPeerId() + " pass " + Constants.COMMAND_DELETE + " ";
+		message+= chunk.getFileId()+" ";
+		message+= Constants.CRLF + Constants.CRLF;
+		
+		return message.getBytes();
+	}
+	
 	public byte[] backupPeerSSL(){
 		String message="1 ";
 		message+=Peer.getPeerId() + " pass " + Constants.COMMAND_BACKUP + " ";
 		message+= chunk.getFileId()+" ";
-		message+= chunk.getChunkNumber() + " " + chunk.getReplication() + " " + chunk.getChunkData().length;
+		message+= chunk.getChunkNumber() + " " + chunk.getReplication() + " " + chunk.getChunkData().length + " " + originalPeer;
 		message+= Constants.CRLF + Constants.CRLF;
 
 		byte[] buffer = concatBytes(message.getBytes(StandardCharsets.UTF_8),chunk.getChunkData());	
@@ -36,7 +70,7 @@ public class Message {
 		String message="2 ";
 		message+=Peer.getPeerId() + " pass " + Constants.COMMAND_BACKUP + " ";
 		message+= chunk.getFileId()+" ";
-		message+= chunk.getChunkNumber() + " " + originalPeer + " " + chunk.getChunkData().length;
+		message+= chunk.getChunkNumber() + " " + originalPeer + " " + chunk.getChunkData().length  + " " + realName;
 		message+= Constants.CRLF + Constants.CRLF;
 
 		byte[] buffer = concatBytes(message.getBytes(StandardCharsets.UTF_8),chunk.getChunkData());	

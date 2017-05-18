@@ -76,20 +76,18 @@ public class SSL_Client implements Runnable {
 		}
 	}
 	
-	public synchronized void sendMessage(byte[] message){
-		if(message==null)
-			System.out.println("MENSAGEM ");
-		if (out==null)
-			System.out.println("outtttttt ");
+	public synchronized String sendMessage(byte[] message){
+		
 		out.println(new String(message));
-		String received;
+		String received = "";
 		try {
 			received = in.readLine();
-			System.out.println("Request answer: " + received);
+			System.out.println("Request answer: " + received);			
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		return received;
 	}
 	
 }

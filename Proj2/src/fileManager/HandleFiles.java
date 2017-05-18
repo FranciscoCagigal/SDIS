@@ -10,6 +10,29 @@ import protocols.Constants;
 
 public class HandleFiles {
 		
+	public static void eraseFile(String path, String regex){
+	    String target_file ;
+	    File folderToScan = new File(path); 
+
+
+	    File[] listOfFiles = folderToScan.listFiles();
+
+	     for (int i = 0; i < listOfFiles.length; i++) {
+	            if (listOfFiles[i].isFile()) {
+	            	System.out.println(listOfFiles[i].getName());
+	                target_file = listOfFiles[i].getName();
+	                if (target_file.contains(regex)) {
+	                	listOfFiles[i].delete();
+	                }
+	           }
+	     } 
+		
+		File file = new File(path);
+		if(file.exists() && !file.isDirectory()){
+			file.delete();
+		}
+	}
+	
 	public static boolean fileExists(String path){
 		File f = new File(path);
 		if(f.exists() && !f.isDirectory()) { 

@@ -109,9 +109,19 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 		
 		System.out.println("encontrei o master");
 		
+		try {
+			Thread.sleep(1000);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 		if(!imMaster){
-		Runnable op = new ReadFile("1.0",new File("../Files1/test.txt"),1);
-		new Thread(op).start();
+			//Runnable op = new ReadFile("1.0",new File("../Files1/test.txt"),1);
+			//new Thread(op).start();
+		
+			Runnable op = new FileDeletion("","test.txt");
+			new Thread(op).start();
 		}
 		
 		
@@ -217,6 +227,14 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 			f.mkdir();
 		}
 		
+		f = new File("../metadata"+peerId+"/AllChunks.csv");
+		try {
+			f.createNewFile();
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		
 		f = new File("../metadata"+peerId+"/ChunkList.csv");
 		if(!f.exists()){
 			try {
@@ -309,7 +327,6 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 	
 	public static byte[] getDataFromReceivedChunk(Chunk chunk){
 		for(Chunk chunkReturned : waitingToBeReceived.keySet()){
-			System.out.println("Vou buscar: " + chunkReturned.getChunkData());
 			if(chunkReturned.equals(chunk))
 				return chunkReturned.getChunkData();
 		}		
