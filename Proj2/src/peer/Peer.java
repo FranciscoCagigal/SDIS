@@ -74,6 +74,7 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 	public Peer() throws RemoteException {
 		super();
 		startTime= System.currentTimeMillis();
+		createDirs();
 	}
 
 	public static void main(String[] args) throws UnknownHostException, RemoteException, MalformedURLException, AlreadyBoundException{
@@ -83,6 +84,8 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 		}
 		
 		Peer peer= new Peer();
+		
+		
 		
 		//Registry registry = LocateRegistry.getRegistry();
 		
@@ -228,6 +231,16 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 		f = new File("../metadata"+peerId);
 		if (!f.exists()) {
 			f.mkdir();
+		}
+		
+		f = new File("../metadata"+Peer.getPeerId()+"/Users.csv");
+		if(!f.exists()){
+			try {
+				f.createNewFile();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 		
 		f = new File("../metadata"+peerId+"/AllChunks.csv");

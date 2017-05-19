@@ -15,7 +15,6 @@ import user.User;
 public class CsvHandler {
 	
 	public synchronized static void createUser(User user){
-		new File("../metadata"+Peer.getPeerId()+"/").mkdir();
 		File userData = new File("../metadata"+Peer.getPeerId()+"/Users.csv");
 		
 		try {

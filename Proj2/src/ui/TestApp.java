@@ -31,6 +31,7 @@ public class TestApp {
 	public static void main(String args[]) throws MalformedURLException, RemoteException, NotBoundException{
 		
 		peer = new Peer();
+		
 		chooseMenu();
 		
 		if(!validateArgs(args)){
