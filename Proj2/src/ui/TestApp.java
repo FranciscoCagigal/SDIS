@@ -22,7 +22,7 @@ public class TestApp {
 	private static IPeer peer;
 	static Scanner in = new Scanner(System.in);
 	static BufferedReader inFromUser = new BufferedReader(new InputStreamReader(System.in));
-	private static final Pattern LEVEL_PATTERN = Pattern.compile("(low)|(high)");
+	private static final Pattern LEVEL_PATTERN = Pattern.compile("((l|L)(o|O)(w|W))|((h|H)(i|I)(g|G)(h|H))");
 	
 	private static String fileName;
 	private static int replicationDegree;
@@ -67,54 +67,96 @@ public class TestApp {
 
 	private static void userMenu(User user) {
 		int optMenu;
-		do{
-			showMenuUser();
-			optMenu = in.nextInt();
-			try {
-				switch (optMenu) {
-				case 1:
-					System.out.print("Enter File Name: ");
-					fileName = inFromUser.readLine();
-					File f = new File(fileName);
-					if(!f.exists() || !f.isDirectory()) {
-						System.out.println("Incorrect File Name - Press Enter");
-						System.in.read();
-						System.out.println("\n\n");
+
+		if(user.getPriorityLevel().toString().equals("LOW")){
+			do{
+				showMenuUserLOW();
+				optMenu = in.nextInt();
+				try {
+					switch (optMenu) {
+					case 1:
+						System.out.print("Enter File Name: ");
+						fileName = inFromUser.readLine();
+						File f = new File(fileName);
+						if(!f.exists() || !f.isDirectory()) {
+							System.out.println("Incorrect File Name - Press Enter");
+							System.in.read();
+							System.out.println("\n\n");
+							break;
+						}
+						System.out.print("Enter Desired Replication Degree: ");
+						replicationDegree = in.nextInt();
+						
+						peer.backup(user, f.getAbsoluteFile(), replicationDegree);
+						break;
+					case 2:
+						System.out.print("Enter File Name: ");
+						fileName = inFromUser.readLine();
+						
+						peer.restore(user, fileName);
+						break;
+					case 3:
+						System.out.println("Leaving!!!\n");
+						break;
+					default:
+						System.out.println("Wrong option choosed!\n");
 						break;
 					}
-					System.out.print("Enter Desired Replication Degree: ");
-					replicationDegree = in.nextInt();
-					
-					peer.backup(user, f.getAbsoluteFile(), replicationDegree);
-					break;
-				case 2:
-					System.out.print("Enter File Name: ");
-					fileName = inFromUser.readLine();
-					
-					peer.restore(user, fileName);
-					break;
-				case 3:
-					System.out.print("Enter Desired Space to Reclaim: ");
-					spaceToReclaim = in.nextInt();
-					peer.reclaim(user, spaceToReclaim);
-					break;
-				case 4:
-					System.out.print("Enter File Name: ");
-					fileName = inFromUser.readLine();
-					peer.delete(user, fileName);
-					break;
-				case 5:
-					System.out.println("Leaving!!!\n");
-					break;
-				default:
-					System.out.println("Wrong option choosed!\n");
-					break;
 				}
-			}
-			catch (IOException e) {
-				e.printStackTrace();
-			}
-		}while(optMenu != 5);
+				catch (IOException e) {
+					e.printStackTrace();
+				}
+			}while(optMenu != 3);
+		}else{
+			do{
+				showMenuUserHIGH();
+				optMenu = in.nextInt();
+				try {
+					switch (optMenu) {
+					case 1:
+						System.out.print("Enter File Name: ");
+						fileName = inFromUser.readLine();
+						File f = new File(fileName);
+						if(!f.exists() || !f.isDirectory()) {
+							System.out.println("Incorrect File Name - Press Enter");
+							System.in.read();
+							System.out.println("\n\n");
+							break;
+						}
+						System.out.print("Enter Desired Replication Degree: ");
+						replicationDegree = in.nextInt();
+						
+						peer.backup(user, f.getAbsoluteFile(), replicationDegree);
+						break;
+					case 2:
+						System.out.print("Enter File Name: ");
+						fileName = inFromUser.readLine();
+						
+						peer.restore(user, fileName);
+						break;
+					case 3:
+						System.out.print("Enter Desired Space to Reclaim: ");
+						spaceToReclaim = in.nextInt();
+						peer.reclaim(user, spaceToReclaim);
+						break;
+					case 4:
+						System.out.print("Enter File Name: ");
+						fileName = inFromUser.readLine();
+						peer.delete(user, fileName);
+						break;
+					case 5:
+						System.out.println("Leaving!!!\n");
+						break;
+					default:
+						System.out.println("Wrong option choosed!\n");
+						break;
+					}
+				}
+				catch (IOException e) {
+					e.printStackTrace();
+				}
+			}while(optMenu != 5);
+		}
 		
 	}
 	
@@ -137,7 +179,7 @@ public class TestApp {
 			
 			while(!flag){
 				System.out.print("Please enter a lever for user (low or high) > ");
-				level = inFromUser.readLine();
+				level = inFromUser.readLine().toLowerCase();
 				if (LEVEL_PATTERN.matcher(level).matches())
 					flag = true;
 			}
@@ -176,8 +218,9 @@ public class TestApp {
 				return;
 			}
 			
+			String level = CsvHandler.getUserLevel(name);
 			
-			User user = new User(name, password, CsvHandler.getUserLevel(name));
+			User user = new User(name, password, level);
 			
 			System.out.println("Login successful - Press enter");
 			System.in.read();
@@ -190,7 +233,7 @@ public class TestApp {
 		}
 	}
 
-	private static void showMenuUser() {
+	private static void showMenuUserHIGH() {
 		System.out.println("============= MENU =============");
 		System.out.println(" 1 - Backup");
 		System.out.println(" 2 - Restore");
@@ -198,6 +241,14 @@ public class TestApp {
 		System.out.println(" 4 - Delete");
 		System.out.println(" 5 - Exit");
 		System.out.print("Please choose an option (1 to 5) >");
+	}
+	
+	private static void showMenuUserLOW() {
+		System.out.println("============= MENU =============");
+		System.out.println(" 1 - Backup");
+		System.out.println(" 2 - Restore");
+		System.out.println(" 3 - Exit");
+		System.out.print("Please choose an option (1 to 3) >");
 	}
 	
 	private static void showMenu() {

@@ -23,7 +23,7 @@ public class CsvHandler {
 			fileWriter.append(Constants.COMMA_DELIMITER);
 			fileWriter.append(user.getPassword());
 			fileWriter.append(Constants.COMMA_DELIMITER);
-			fileWriter.append(user.getPriorityLevel().toString());
+			fileWriter.append(user.getPriorityLevel().toString().toLowerCase());
 			fileWriter.append(Constants.NEW_LINE_SEPARATOR);
 			fileWriter.close();
 		} 
