@@ -71,7 +71,7 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 	//threads
 	private static Runnable mc1;
 	
-	protected Peer() throws RemoteException {
+	public Peer() throws RemoteException {
 		super();
 		startTime= System.currentTimeMillis();
 	}

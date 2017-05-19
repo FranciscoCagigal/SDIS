@@ -15,10 +15,11 @@ import user.User;
 public class CsvHandler {
 	
 	public synchronized static void createUser(User user){
+		new File("../metadata"+Peer.getPeerId()+"/").mkdir();
 		File userData = new File("../metadata"+Peer.getPeerId()+"/Users.csv");
-
+		
 		try {
-			FileWriter fileWriter = new FileWriter(userData, false);
+			FileWriter fileWriter = new FileWriter(userData, true);
 			fileWriter.append(user.getUsername());
 			fileWriter.append(Constants.COMMA_DELIMITER);
 			fileWriter.append(user.getPassword());
@@ -38,24 +39,25 @@ public class CsvHandler {
 		File userData = new File("../metadata"+Peer.getPeerId()+"/Users.csv");
 		Scanner scanner;
 		
-		try {
-			scanner = new Scanner(userData);
-			scanner.useDelimiter(Constants.NEW_LINE_SEPARATOR);
-			while(scanner.hasNext()){
-				String str=scanner.next();
-				String[] divided = str.split(Constants.COMMA_DELIMITER);
-				if (divided[0].equals(name)) {
-					scanner.close();
-					return true;
+		if(userData.exists()){
+			try {
+				scanner = new Scanner(userData);
+				scanner.useDelimiter(Constants.NEW_LINE_SEPARATOR);
+				while(scanner.hasNext()){
+					String str=scanner.next();
+					String[] divided = str.split(Constants.COMMA_DELIMITER);
+					if (divided[0].equals(name)) {
+						scanner.close();
+						return true;
+					}
 				}
+				
+				
+			} catch (FileNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
-			
-			
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		}
-		
 		return false;
 	}
 	
@@ -63,22 +65,24 @@ public class CsvHandler {
 		File userData = new File("../metadata"+Peer.getPeerId()+"/Users.csv");
 		Scanner scanner;
 		
-		try {
-			scanner = new Scanner(userData);
-			scanner.useDelimiter(Constants.NEW_LINE_SEPARATOR);
-			while(scanner.hasNext()){
-				String str=scanner.next();
-				String[] divided = str.split(Constants.COMMA_DELIMITER);
-				if (divided[0].equals(name)) {
-					String password = divided[1];
-					scanner.close();
-					return password;
+		if(userData.exists()){
+			try {
+				scanner = new Scanner(userData);
+				scanner.useDelimiter(Constants.NEW_LINE_SEPARATOR);
+				while(scanner.hasNext()){
+					String str=scanner.next();
+					String[] divided = str.split(Constants.COMMA_DELIMITER);
+					if (divided[0].equals(name)) {
+						String password = divided[1];
+						scanner.close();
+						return password;
+					}
 				}
+				scanner.close();
+			} catch (FileNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
-			scanner.close();
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		}
 		return null;
 	}
@@ -87,22 +91,24 @@ public class CsvHandler {
 		File userData = new File("../metadata"+Peer.getPeerId()+"/Users.csv");
 		Scanner scanner;
 		
-		try {
-			scanner = new Scanner(userData);
-			scanner.useDelimiter(Constants.NEW_LINE_SEPARATOR);
-			while(scanner.hasNext()){
-				String str=scanner.next();
-				String[] divided = str.split(Constants.COMMA_DELIMITER);
-				if (divided[0].equals(name)) {
-					String level = divided[2];
-					scanner.close();
-					return level;
+		if(userData.exists()){
+			try {
+				scanner = new Scanner(userData);
+				scanner.useDelimiter(Constants.NEW_LINE_SEPARATOR);
+				while(scanner.hasNext()){
+					String str=scanner.next();
+					String[] divided = str.split(Constants.COMMA_DELIMITER);
+					if (divided[0].equals(name)) {
+						String level = divided[2];
+						scanner.close();
+						return level;
+					}
 				}
+				scanner.close();
+			} catch (FileNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
-			scanner.close();
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		}
 		return null;
 	}

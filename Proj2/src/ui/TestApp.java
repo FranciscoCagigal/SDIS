@@ -14,6 +14,7 @@ import java.util.regex.Pattern;
 
 import fileManager.CsvHandler;
 import peer.IPeer;
+import peer.Peer;
 import user.User;
 
 public class TestApp {
@@ -29,7 +30,7 @@ public class TestApp {
 	
 	public static void main(String args[]) throws MalformedURLException, RemoteException, NotBoundException{
 		
-		
+		peer = new Peer();
 		chooseMenu();
 		
 		if(!validateArgs(args)){
@@ -37,8 +38,7 @@ public class TestApp {
 			return;
 		}
 		
-		callServer(args);
-		
+		//callServer(args);
 	}
 	
 	private static void chooseMenu() {
@@ -70,43 +70,45 @@ public class TestApp {
 			showMenuUser();
 			optMenu = in.nextInt();
 			try {
-			switch (optMenu) {
-			case 1:
-				System.out.print("Enter File Name: ");
-				fileName = inFromUser.readLine();
-				File f = new File(fileName);
-				if(!f.exists() || !f.isDirectory()) {
-					System.out.println("Incorrect File Name");
+				switch (optMenu) {
+				case 1:
+					System.out.print("Enter File Name: ");
+					fileName = inFromUser.readLine();
+					File f = new File(fileName);
+					if(!f.exists() || !f.isDirectory()) {
+						System.out.println("Incorrect File Name - Press Enter");
+						System.in.read();
+						System.out.println("\n\n");
+						break;
+					}
+					System.out.print("Enter Desired Replication Degree: ");
+					replicationDegree = in.nextInt();
+					
+					peer.backup(user, f.getAbsoluteFile(), replicationDegree);
+					break;
+				case 2:
+					System.out.print("Enter File Name: ");
+					fileName = inFromUser.readLine();
+					
+					peer.restore(user, fileName);
+					break;
+				case 3:
+					System.out.print("Enter Desired Space to Reclaim: ");
+					spaceToReclaim = in.nextInt();
+					peer.reclaim(user, spaceToReclaim);
+					break;
+				case 4:
+					System.out.print("Enter File Name: ");
+					fileName = inFromUser.readLine();
+					peer.delete(user, fileName);
+					break;
+				case 5:
+					System.out.println("Leaving!!!\n");
+					break;
+				default:
+					System.out.println("Wrong option choosed!\n");
 					break;
 				}
-				System.out.print("Enter Desired Replication Degree: ");
-				replicationDegree = in.nextInt();
-				
-				peer.backup(user, f.getAbsoluteFile(), replicationDegree);
-				break;
-			case 2:
-				System.out.print("Enter File Name: ");
-				fileName = inFromUser.readLine();
-				
-				peer.restore(user, fileName);
-				break;
-			case 3:
-				System.out.print("Enter Desired Space to Reclaim: ");
-				spaceToReclaim = in.nextInt();
-				peer.reclaim(user, spaceToReclaim);
-				break;
-			case 4:
-				System.out.print("Enter File Name: ");
-				fileName = inFromUser.readLine();
-				peer.delete(user, fileName);
-				break;
-			case 5:
-				System.out.println("Leaving!!!\n");
-				break;
-			default:
-				System.out.println("Wrong option choosed!\n");
-				break;
-			}
 			}
 			catch (IOException e) {
 				e.printStackTrace();
@@ -124,7 +126,9 @@ public class TestApp {
 			System.out.print("Please enter a name for user > ");
 			name = inFromUser.readLine();
 			if (CsvHandler.checkUser(name)){
-				System.out.println("User already exists");
+				System.out.println("User already exists - Press enter");
+				System.in.read();
+				System.out.println("\n\n");
 				return;
 			}
 			System.out.print("Please enter a password for user > ");
@@ -156,14 +160,18 @@ public class TestApp {
 			System.out.print("Please enter a username> ");
 			name = inFromUser.readLine();
 			if (!CsvHandler.checkUser(name)){
-				System.out.println("User doesn't exist");
+				System.out.println("User doesn't exist - Press enter");
+				System.in.read();
+				System.out.println("\n\n");
 				return;
 			}
 			
 			System.out.print("Please enter a password for user > ");
 			password = inFromUser.readLine();
 			if (!password.equals(CsvHandler.getUserPassword(name))){
-				System.out.println("Wrong password");
+				System.out.println("Wrong password - Press enter");
+				System.in.read();
+				System.out.println("\n\n");
 				return;
 			}
 			
