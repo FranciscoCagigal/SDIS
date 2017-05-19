@@ -13,6 +13,7 @@ import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 
 import peer.Peer;
+import protocols.Constants;
 import protocols.Message;
 
 public class SSL_Client implements Runnable {
@@ -77,12 +78,50 @@ public class SSL_Client implements Runnable {
 	}
 	
 	public synchronized String sendMessage(byte[] message){
-		
 		out.println(new String(message));
 		String received = "";
 		try {
 			received = in.readLine();
-			System.out.println("Request answer: " + received);			
+			
+			if(!received.equals("ok")){
+				String[] divided = received.split(" ");
+				if(divided.length==4 && divided[2].equals(Constants.COMMAND_RESTORE)){
+					
+					char[] buffer = new char[64000];
+					char[] result = new char[64000];
+					
+					int counter=0;
+					
+					while((counter+=in.read(buffer))!=-1){
+						
+						result=Message.concatBytes(Handler.trim(result),Handler.trim(buffer));
+						if(counter-2>=Integer.parseInt(divided[3]))
+							break;
+						
+						buffer = new char[64000];
+					}
+					received=new String(Handler.trim(buffer));
+				}else if(received.equals("RESTOREANSWER")){
+					System.out.print("entrei no restoreanswer");
+					
+					char[] buffer = new char[64000];
+					char[] result = new char[64000];
+					
+					int counter=0;
+					String file="";
+					while((counter+=in.read(buffer))!=-1){
+						System.out.println("counter " + counter);
+						if(new String(Handler.trim(buffer)).equals("ok"))
+							break;						
+						result=Message.concatBytes(Handler.trim(result),Handler.trim(buffer));
+						buffer = new char[64000];
+						file+=new String(result);
+					}
+					
+					received = file;
+				}
+			}
+			//System.out.println("Request answer: " + received);			
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

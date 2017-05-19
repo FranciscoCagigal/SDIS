@@ -27,7 +27,27 @@ public class Message {
 		this.realName=realName;
 	}
 	
-	public byte[] deletePeerRestore(){
+	public byte[] answerRestoreSSL(){
+		String message="";
+		message+=Peer.getPeerId() + " pass " + Constants.COMMAND_RESTORE + " ";
+		message+= chunk.getChunkData().length;
+		message+= Constants.CRLF + Constants.CRLF;
+
+		byte[] buffer = concatBytes(message.getBytes(StandardCharsets.UTF_8),chunk.getChunkData());	
+		
+		return buffer;
+	}
+	
+	public byte[] restoreMasterSSL(){
+		String message="2 ";
+		message+=Peer.getPeerId() + " pass " + Constants.COMMAND_RESTORE + " ";
+		message+= chunk.getFileId() + " " + chunk.getChunkNumber();
+		message+= Constants.CRLF + Constants.CRLF;
+		
+		return message.getBytes();
+	}
+	
+	public byte[] restorePeerSSL(){
 		String message="1 ";
 		message+=Peer.getPeerId() + " pass " + Constants.COMMAND_RESTORE + " ";
 		message+= chunk.getFileId();

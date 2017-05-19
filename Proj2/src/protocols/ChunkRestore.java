@@ -29,24 +29,21 @@ public class ChunkRestore implements Runnable {
 		
 		Chunk chunk = new Chunk(fileName,0,null,0);
 		Message message = new Message(chunk,"");
-		String result=((SSL_Client) Peer.getClientThread()).sendMessage(message.backupPeerSSL());
+		String result=((SSL_Client) Peer.getClientThread()).sendMessage(message.restorePeerSSL());
 	
+		System.out.println("recebi o ficheiro");
 		
-		//teste
 		File file = new File("../Restores" + Peer.getPeerId()+"/"+fileName);
 		try {
 			file.createNewFile();
 			FileOutputStream fos = new FileOutputStream(file,false);
-			for(byte[] data: chunkData){
-				fos.write(Handler.trim(data));
-			}
+			fos.write(result.getBytes());
 			
 			fos.close();
-			//end Teste
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}	
+		}
 		
 	}
 

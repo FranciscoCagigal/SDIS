@@ -189,29 +189,55 @@ public class SSL_Handler implements Runnable {
 						 CsvHandler.deleteChunks(filename, "../metadata"+Peer.getPeerId()+"/ChunkList.csv");
 					}
 					
-					in.readLine();
-					
-					
 					break;
 					
 				case "RECLAIM":
 					
-					realName = divided[4];
-					filename = CsvHandler.getHash(realName);
-					int chunkNr = 0;
-					while(true){
-						List<String> peers = CsvHandler.getPeersChunk(filename,chunkNr)
-					}
+					
 					
 					break;
 					
 				case "RESTORE":
 					
-					realName = divided[4];
-					filename = CsvHandler.getHash(realName);
 					if(type.equals("1")){
-						
+						realName = divided[4];
+						filename = CsvHandler.getHash(realName);
+						int chunkNr = 0;
+						while(true){
+							HashMap<String,Runnable> copy = new HashMap<String,Runnable>(Peer.getPeers());
+							Iterator<Entry<String,Runnable>> it = copy.entrySet().iterator();
+							List<String> peers = CsvHandler.getPeersChunk(filename,chunkNr);
+							if(peers.size()==0)
+								break;
+							while(it.hasNext()) {
+								Map.Entry<String,Runnable> pair = (Map.Entry<String,Runnable>)it.next();
+								String idThread = pair.getKey();
+								Runnable thread = pair.getValue();
+								Chunk chunk = new Chunk(filename,chunkNr,null,0);
+													
+								if(!idThread.equals(Peer.getPeerId()+"") && peers.contains(idThread)){
+									out.println("RESTOREANSWER");
+									Message message = new Message(chunk,"");
+									out.println(((SSL_Client) thread).sendMessage(message.restoreMasterSSL()));
+								}
+								
+								it.remove();
+							}
+							chunkNr++;
+						}
+						answer="ok";
+					}else if(type.equals("2")){
+						chunkNumber = divided[5];
+						filename = divided[4];
+						byte[] chunkData = HandleFiles.readFile("../Chunks"+Peer.getPeerId()+"/"+filename+"."+chunkNumber);
+						chunkData=Handler.trim(chunkData);
+						System.out.println(chunkData.length);
+						Chunk chunk = new Chunk(filename,Integer.parseInt(chunkNumber),chunkData,0);
+						Message message = new Message(chunk);
+						answer = new String(message.answerRestoreSSL()); 
+						System.out.println("vou manda o chunk");
 					}
+					in.readLine();
 					
 					break;
 					
