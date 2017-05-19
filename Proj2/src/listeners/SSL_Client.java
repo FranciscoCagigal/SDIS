@@ -100,22 +100,22 @@ public class SSL_Client implements Runnable {
 						
 						buffer = new char[64000];
 					}
-					received=new String(Handler.trim(buffer));
-				}else if(received.equals("RESTOREANSWER")){
-					System.out.print("entrei no restoreanswer");
-					
+					result=Handler.trim(result);
+					result=Arrays.copyOfRange(result, 2, result.length-2);
+					received=new String(result);
+				}else if(received.equals("RESTOREANSWER")){					
 					char[] buffer = new char[64000];
 					char[] result = new char[64000];
-					
-					int counter=0;
 					String file="";
-					while((counter+=in.read(buffer))!=-1){
-						System.out.println("counter " + counter);
-						if(new String(Handler.trim(buffer)).equals("ok"))
-							break;						
-						result=Message.concatBytes(Handler.trim(result),Handler.trim(buffer));
-						buffer = new char[64000];
-						file+=new String(result);
+					while(in.read(buffer)!=-1){
+						buffer = Handler.trim(buffer);
+						
+						System.out.println("tamanho before send " + buffer.length);
+						if(new String(Arrays.copyOfRange(buffer, 0, buffer.length-2)).equals("ok")){
+							break;	
+						}				
+						file+=new String(buffer);
+						buffer = new char[64000];					
 					}
 					
 					received = file;

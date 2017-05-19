@@ -74,7 +74,7 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 	public Peer() throws RemoteException {
 		super();
 		startTime= System.currentTimeMillis();
-		createDirs();
+		//createDirs();
 	}
 
 	public static void main(String[] args) throws UnknownHostException, RemoteException, MalformedURLException, AlreadyBoundException{

@@ -203,6 +203,7 @@ public class SSL_Handler implements Runnable {
 						realName = divided[4];
 						filename = CsvHandler.getHash(realName);
 						int chunkNr = 0;
+						out.println("RESTOREANSWER");
 						while(true){
 							HashMap<String,Runnable> copy = new HashMap<String,Runnable>(Peer.getPeers());
 							Iterator<Entry<String,Runnable>> it = copy.entrySet().iterator();
@@ -216,9 +217,12 @@ public class SSL_Handler implements Runnable {
 								Chunk chunk = new Chunk(filename,chunkNr,null,0);
 													
 								if(!idThread.equals(Peer.getPeerId()+"") && peers.contains(idThread)){
-									out.println("RESTOREANSWER");
+									
 									Message message = new Message(chunk,"");
-									out.println(((SSL_Client) thread).sendMessage(message.restoreMasterSSL()));
+									String chunkMsg = ((SSL_Client) thread).sendMessage(message.restoreMasterSSL());
+									out.print(chunkMsg);
+									out.flush();
+									break;
 								}
 								
 								it.remove();
@@ -231,11 +235,9 @@ public class SSL_Handler implements Runnable {
 						filename = divided[4];
 						byte[] chunkData = HandleFiles.readFile("../Chunks"+Peer.getPeerId()+"/"+filename+"."+chunkNumber);
 						chunkData=Handler.trim(chunkData);
-						System.out.println(chunkData.length);
 						Chunk chunk = new Chunk(filename,Integer.parseInt(chunkNumber),chunkData,0);
 						Message message = new Message(chunk);
-						answer = new String(message.answerRestoreSSL()); 
-						System.out.println("vou manda o chunk");
+						answer = new String(message.answerRestoreSSL());
 					}
 					in.readLine();
 					
