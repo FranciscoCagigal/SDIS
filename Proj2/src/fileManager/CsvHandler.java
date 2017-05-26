@@ -14,6 +14,26 @@ import user.User;
 
 public class CsvHandler {
 	
+	public synchronized static List<String> getUsers(){
+		File userData = new File("../metadata"+Peer.getPeerId()+"/Users.csv");
+		Scanner scanner;
+		List<String> listOfNames = new ArrayList<String>();
+		if(userData.exists()){
+			try {
+				scanner = new Scanner(userData);
+				scanner.useDelimiter(Constants.NEW_LINE_SEPARATOR);
+				while(scanner.hasNext()){
+					String str=scanner.next();
+					listOfNames.add(str);
+				}				
+			} catch (FileNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		return listOfNames;
+	}
+	
 	public synchronized static void createUser(User user){
 		File userData = new File("../metadata"+Peer.getPeerId()+"/Users.csv");
 		

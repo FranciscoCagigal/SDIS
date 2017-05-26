@@ -6,6 +6,7 @@ public class User {
 	private PriorityLevel priorityLevel;
 	
 	public User(String username, String password, String priorityLevel){
+		
 		this.username=username;
 		this.password=password;
 		if(priorityLevel.equals("low")){

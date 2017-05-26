@@ -28,6 +28,7 @@ import protocols.EnterSystem;
 import protocols.FileDeletion;
 import protocols.ReadFile;
 import protocols.ServiceState;
+import protocols.ShareDatabase;
 import protocols.SpaceReclaiming;
 import user.User;
 
@@ -126,7 +127,10 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 			//Runnable op = new FileDeletion("","test.txt");
 			//new Thread(op).start();
 			
-			Runnable op = new ChunkRestore("","test.txt");
+			//Runnable op = new ChunkRestore("","test.txt");
+			//new Thread(op).start();
+			
+			Runnable op = new ShareDatabase();
 			new Thread(op).start();
 		}
 		

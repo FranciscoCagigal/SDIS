@@ -3,6 +3,7 @@ package protocols;
 import peer.Peer;
 
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 import fileManager.Chunk;
 
@@ -11,6 +12,11 @@ public class Message {
 	private Chunk chunk;
 	private String originalPeer;
 	private String realName;
+	private List<String> names;
+	
+	public Message (List<String> names){
+		this.names=names;
+	}
 	
 	public Message (Chunk chunk1){
 		chunk=chunk1;
@@ -25,6 +31,16 @@ public class Message {
 		chunk=chunk1;
 		this.originalPeer=originalPeer;
 		this.realName=realName;
+	}
+	
+	public byte[] shareNamesSSL(){
+		String message="1 ";
+		message+=Peer.getPeerId() + " pass " + Constants.COMMAND_NAMES + " " + names.size() + " ";
+		message+= Constants.CRLF + Constants.CRLF;
+		for(int i =0;i<names.size();i++){
+			message+= " " + names.get(i).substring(0,  names.get(i).length()-1);
+		}
+		return message.getBytes();
 	}
 	
 	public byte[] answerRestoreSSL(){

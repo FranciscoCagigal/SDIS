@@ -30,8 +30,6 @@ public class ChunkRestore implements Runnable {
 		Chunk chunk = new Chunk(fileName,0,null,0);
 		Message message = new Message(chunk,"");
 		String result=((SSL_Client) Peer.getClientThread()).sendMessage(message.restorePeerSSL());
-	
-		System.out.println("recebi o ficheiro " + result.length());
 		
 		File file = new File("../Restores" + Peer.getPeerId()+"/"+fileName);
 		try {

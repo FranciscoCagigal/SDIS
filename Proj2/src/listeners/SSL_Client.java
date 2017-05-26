@@ -12,9 +12,11 @@ import java.util.Arrays;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 
+import fileManager.CsvHandler;
 import peer.Peer;
 import protocols.Constants;
 import protocols.Message;
+import user.User;
 
 public class SSL_Client implements Runnable {
 
@@ -119,6 +121,34 @@ public class SSL_Client implements Runnable {
 					}
 					
 					received = file;
+				}else if(divided[0].equals(Constants.COMMAND_NAMES)){
+					char[] bufferNames = new char[64000];
+					char[] resultNames = new char[64000];
+					
+					while((in.read(bufferNames))!=-1){
+						resultNames=Message.concatBytes(Handler.trim(resultNames),Handler.trim(bufferNames));
+						resultNames=Handler.trim(resultNames);
+						resultNames=Arrays.copyOfRange(resultNames, 0, resultNames.length-2);
+							
+						if(new String(resultNames).split(" ").length==Integer.parseInt(divided[1])+1)
+							break;
+							
+						bufferNames = new char[64000];
+					}
+					resultNames=Arrays.copyOfRange(resultNames, 3, resultNames.length);
+					
+					String[] dividedNames = new String(resultNames).split(" ");
+					
+					System.out.println(new String(resultNames));
+					
+					for(int i=0;i<dividedNames.length;i++){
+						String[] dividedName = dividedNames[i].split(";");
+						if(!CsvHandler.checkUser(dividedName[0])){
+							User user = new User(dividedName[0],dividedName[1],dividedName[2]);
+							CsvHandler.createUser(user);
+						}
+					}
+					received="ok";
 				}
 			}
 			//System.out.println("Request answer: " + received);			

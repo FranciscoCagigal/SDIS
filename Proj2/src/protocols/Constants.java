@@ -21,5 +21,6 @@ public interface Constants {
 	public static final String COMMAND_IMMASTER = "IMMASTER";
 	public static final String COMMAND_BEGINELECTION = "BEGINELECTION";
 	public static final String COMMAND_DISPUTEMASTER = "DISPUTEMASTER";
+	public static final String COMMAND_NAMES = "NAMES";
 
 }

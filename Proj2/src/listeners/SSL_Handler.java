@@ -19,6 +19,7 @@ import fileManager.HandleFiles;
 import peer.Peer;
 import protocols.Constants;
 import protocols.Message;
+import user.User;
 
 public class SSL_Handler implements Runnable {
 
@@ -89,7 +90,9 @@ public class SSL_Handler implements Runnable {
 				
 				byte[] bytesBody;
 				
-				in.readLine();
+				String yolo=in.readLine();
+				
+				System.out.println("yolo" + yolo);
 				
 				switch(protocol){
 				
@@ -241,6 +244,7 @@ public class SSL_Handler implements Runnable {
 					}
 					in.readLine();
 					
+					
 					break;
 					
 				case "CREATE":
@@ -250,8 +254,49 @@ public class SSL_Handler implements Runnable {
 					level = divided[6];
 					
 					break;
+				
+				case  Constants.COMMAND_NAMES: 
 					
+					String numberOfNames = divided[4];
+					
+					char[] bufferNames = new char[64000];
+					char[] resultNames = new char[64000];
+					
+					if(type.equals("1")){
+						while((in.read(bufferNames))!=-1){
+							resultNames=Message.concatBytes(Handler.trim(resultNames),Handler.trim(bufferNames));
+							resultNames=Handler.trim(resultNames);
+							resultNames=Arrays.copyOfRange(resultNames, 0, resultNames.length-2);
+							
+							if(new String(resultNames).split(" ").length==Integer.parseInt(numberOfNames)+1)
+								break;
+							
+							bufferNames = new char[64000];
+						}			
+						
+						resultNames=Arrays.copyOfRange(resultNames, 1, resultNames.length);
+						
+						String[] dividedNames = new String(resultNames).split(" ");
+						
+						for(int i=0;i<dividedNames.length;i++){
+							String[] dividedName = dividedNames[i].split(";");
+							if(!CsvHandler.checkUser(dividedName[0])){
+								User user = new User(dividedName[0],dividedName[1],dividedName[2]);
+								CsvHandler.createUser(user);
+							}
+						}
+						
+						List<String> names = CsvHandler.getUsers();
+						answer=Constants.COMMAND_NAMES + " " + names.size();
+						answer+= Constants.CRLF + Constants.CRLF;
+						for(int i=0;i<names.size();i++){
+							answer+=" " + names.get(i);
+						}
+					}
+					
+					break;
 				}
+				
 				
 				out.println(answer);
 			}
