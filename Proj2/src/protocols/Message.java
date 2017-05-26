@@ -6,6 +6,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import fileManager.Chunk;
+import fileManager.HandleFiles;
 
 public class Message {
 	
@@ -31,6 +32,25 @@ public class Message {
 		chunk=chunk1;
 		this.originalPeer=originalPeer;
 		this.realName=realName;
+	}
+	
+	
+	public byte[] getChunksStoredSSL(){
+		List <String> list = HandleFiles.getChunks();
+		String message="1 ";
+		message+=Peer.getPeerId() + " pass " + Constants.COMMAND_GETOTHERCHUNKS + " " + list.size() + " ";
+		message+= Constants.CRLF + Constants.CRLF;
+		for(int i =0;i<list.size();i++){
+			message+= " " + list.get(i);
+		}
+		return message.getBytes();
+	}
+	
+	public byte[] shareMyChunksSSL(){
+		String message="1 ";
+		message+=Peer.getPeerId() + " pass " + Constants.COMMAND_GETMYCHUNKS + " ";// + names.size() + " ";
+		message+= Constants.CRLF;
+		return message.getBytes();
 	}
 	
 	public byte[] shareNamesSSL(){

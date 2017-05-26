@@ -22,5 +22,7 @@ public interface Constants {
 	public static final String COMMAND_BEGINELECTION = "BEGINELECTION";
 	public static final String COMMAND_DISPUTEMASTER = "DISPUTEMASTER";
 	public static final String COMMAND_NAMES = "NAMES";
+	public static final String COMMAND_GETMYCHUNKS = "GETMYCHUNKS";
+	public static final String COMMAND_GETOTHERCHUNKS = "GETOTHERCHUNKS";
 
 }

@@ -5,11 +5,27 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
+import peer.Peer;
 import protocols.Constants;
 
 public class HandleFiles {
 		
+	public static List<String> getChunks(){
+	    File folderToScan = new File("../Chunks"+Peer.getPeerId()+"/"); 
+	    List<String> list =new ArrayList<String>();
+	    File[] listOfFiles = folderToScan.listFiles();
+
+	     for (int i = 0; i < listOfFiles.length; i++) {
+	            if (listOfFiles[i].isFile()) {
+	                list.add(listOfFiles[i].getName());
+	           }
+	     } 
+	     return list;
+	}
+	
 	public static void eraseFile(String path, String regex){
 	    String target_file ;
 	    File folderToScan = new File(path); 

@@ -12,6 +12,7 @@ import java.util.Arrays;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 
+import fileManager.Chunk;
 import fileManager.CsvHandler;
 import peer.Peer;
 import protocols.Constants;
@@ -129,26 +130,89 @@ public class SSL_Client implements Runnable {
 						resultNames=Message.concatBytes(Handler.trim(resultNames),Handler.trim(bufferNames));
 						resultNames=Handler.trim(resultNames);
 						resultNames=Arrays.copyOfRange(resultNames, 0, resultNames.length-2);
+						System.out.println(new String(resultNames) + " " + resultNames.length);
+						if(new String(resultNames).split(" ").length==Integer.parseInt(divided[1]))
+							break;
+							
+						bufferNames = new char[64000];
+					}
+					
+					
+					if(resultNames.length>1)
+						resultNames=Arrays.copyOfRange(resultNames, 2, resultNames.length);
+					
+					String[] dividedNames = new String(resultNames).split(" ");
+					
+					for(int i=0;i<dividedNames.length;i++){
+						String[] dividedName = dividedNames[i].split(";");
+						if(dividedName.length==3&&!CsvHandler.checkUser(dividedName[0])){
+							System.out.println(dividedNames[i] + " " + dividedNames[i].length());
+							System.out.println(dividedName[0] + " " + dividedName[1]);
+							User user = new User(dividedName[0],dividedName[1],dividedName[2]);
+							CsvHandler.createUser(user);
+						}
+					}
+					received="ok";
+				} else if(divided[0].equals(Constants.COMMAND_GETMYCHUNKS)){
+					char[] bufferNames = new char[64000];
+					char[] resultNames = new char[64000];
+					
+					while((in.read(bufferNames))!=-1){
+						resultNames=Message.concatBytes(Handler.trim(resultNames),Handler.trim(bufferNames));
+						resultNames=Handler.trim(resultNames);
+						resultNames=Arrays.copyOfRange(resultNames, 0, resultNames.length-2);
 							
 						if(new String(resultNames).split(" ").length==Integer.parseInt(divided[1])+1)
 							break;
 							
 						bufferNames = new char[64000];
 					}
-					resultNames=Arrays.copyOfRange(resultNames, 3, resultNames.length);
-					
-					String[] dividedNames = new String(resultNames).split(" ");
-					
-					System.out.println(new String(resultNames));
-					
-					for(int i=0;i<dividedNames.length;i++){
-						String[] dividedName = dividedNames[i].split(";");
-						if(!CsvHandler.checkUser(dividedName[0])){
-							User user = new User(dividedName[0],dividedName[1],dividedName[2]);
-							CsvHandler.createUser(user);
+						if(resultNames.length>2)
+							resultNames=Arrays.copyOfRange(resultNames, 3, resultNames.length);
+						
+						String[] dividedNames = new String(resultNames).split(" ");
+						
+						for(int i=0;i<dividedNames.length;i++){
+							String[] dividedName = dividedNames[i].split(";");
+							if(dividedName.length>4){
+								String listOfPeers="";
+								for(int j=4;j<dividedName.length;j++){
+									listOfPeers+=dividedName[j] + " ";
+								}
+								CsvHandler.addMyChunkMeta(new Chunk(dividedName[0],Integer.parseInt(dividedName[1]),null,0), listOfPeers, dividedName[2]);
+							}
 						}
+						received="ok";
+					
+					
+				}else if(divided[0].equals(Constants.COMMAND_GETOTHERCHUNKS)){
+					char[] bufferNames = new char[64000];
+					char[] resultNames = new char[64000];
+					
+					while((in.read(bufferNames))!=-1){
+						resultNames=Message.concatBytes(Handler.trim(resultNames),Handler.trim(bufferNames));
+						resultNames=Handler.trim(resultNames);
+						resultNames=Arrays.copyOfRange(resultNames, 0, resultNames.length-2);
+						System.out.println(new String(resultNames));
+						if(new String(resultNames).split(" ").length==Integer.parseInt(divided[1]))
+							break;
+							
+						bufferNames = new char[64000];
 					}
-					received="ok";
+						if(resultNames.length>2)
+							resultNames=Arrays.copyOfRange(resultNames, 3, resultNames.length);
+						
+						String[] dividedNames = new String(resultNames).split(" ");
+						
+						for(int i=0;i<dividedNames.length;i++){
+							String[] dividedName = dividedNames[i].split(";");
+							if(dividedName.length==3){
+								String[] dividedfile = dividedName[0].split("\\.");
+								CsvHandler.addChunkMeta(new Chunk(dividedfile[0],Integer.parseInt(dividedfile[1]),null,0), dividedName[1], dividedName[2]);
+							}
+						}
+						received="ok";
+					
 				}
 			}
 			//System.out.println("Request answer: " + received);			
