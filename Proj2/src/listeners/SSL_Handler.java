@@ -123,21 +123,36 @@ public class SSL_Handler implements Runnable {
 						result=Arrays.copyOfRange(result, 0, result.length-2);
 						
 						answer="";
-						
+						Chunk chunk = new Chunk(filename,Integer.parseInt(chunkNumber),new String(result).getBytes(),Integer.parseInt(repDegree));
+						CsvHandler.addMasterMeta(chunk, id, realName);
 						HashMap<String,Runnable> copy = new HashMap<String,Runnable>(Peer.getPeers());
 						Iterator<Entry<String,Runnable>> it = copy.entrySet().iterator();
+						
+						int replication = Integer.parseInt(repDegree);
+						int counterRepl=0;
+						
 						while(it.hasNext()) {
 							Map.Entry<String,Runnable> pair = (Map.Entry<String,Runnable>)it.next();
 							String idThread = pair.getKey();
 							Runnable thread = pair.getValue();
-							Chunk chunk = new Chunk(filename,Integer.parseInt(chunkNumber),new String(result).getBytes(),Integer.parseInt(repDegree));
+							
 							if(!idThread.equals(Peer.getPeerId()+"")){
 								answer+=idThread+" ";
 								Message message = new Message(chunk,id,realName);
 								if(((SSL_Client) thread).sendMessage(message.backupMasterSSL()).equals("ok")){
 									CsvHandler.addMasterMeta(chunk, idThread, realName);
+									counterRepl++;
 								}
+							}else{
+								HandleFiles.writeFile("../Chunks"+Peer.getPeerId()+"/"+filename+"."+chunkNumber, new String(result).getBytes());
+								CsvHandler.addChunkMeta(chunk, id, realName);
+								CsvHandler.addMasterMeta(chunk, Peer.getPeerId()+"", realName);
+								counterRepl++;
+								answer+=Peer.getPeerId()+" ";
 							}
+							
+							if(replication==counterRepl)
+								break;
 							
 							it.remove();
 						}
@@ -218,6 +233,7 @@ public class SSL_Handler implements Runnable {
 						}	
 					}
 					
+
 					HashMap<String,Runnable> copy = new HashMap<String,Runnable>(Peer.getPeers());
 					Iterator<Entry<String,Runnable>> it = copy.entrySet().iterator();
 					while(it.hasNext()) {
@@ -225,7 +241,7 @@ public class SSL_Handler implements Runnable {
 						String idThread = pair.getKey();
 						Runnable thread = pair.getValue();
 						Chunk chunk = new Chunk(filename,Integer.parseInt(chunkNumber),new String(chunkDataTotal).getBytes(),0);
-						if(!idThread.equals(id)){
+						if(!idThread.equals(id) && !idThread.equals(Peer.getPeerId())){
 							answer+=idThread;
 							Message message = new Message(chunk,id,realName);
 							if(((SSL_Client) thread).sendMessage(message.backupMasterSSL()).equals("ok")){
@@ -239,6 +255,15 @@ public class SSL_Handler implements Runnable {
 					
 				break;
 				}
+					
+				case Constants.COMMAND_GETMYCHUNKS:
+						List<String> list = CsvHandler.getChunksByPeers(id);
+						answer= Constants.COMMAND_GETMYCHUNKS + " " + list.size() + " "+ Constants.CRLF + Constants.CRLF;
+						for(int i =0;i<list.size();i++){
+							answer+= " " + list.get(i);//.substring(0,  names.get(i).length()-1);
+						}
+						break;
+					
 				case "RESTORE":
 					
 					if(type.equals("1")){
@@ -294,6 +319,53 @@ public class SSL_Handler implements Runnable {
 					
 					break;
 				
+				case  Constants.COMMAND_GETOTHERCHUNKS: 
+										
+					if(type.equals("1")){
+						
+						String numberOfNames = divided[4];
+						
+						char[] bufferNames = new char[64000];
+						char[] resultNames = new char[64000];
+						
+						while((in.read(bufferNames))!=-1){
+							resultNames=Message.concatBytes(Handler.trim(resultNames),Handler.trim(bufferNames));
+							resultNames=Handler.trim(resultNames);
+							resultNames=Arrays.copyOfRange(resultNames, 0, resultNames.length-2);
+							
+							if(new String(resultNames).split(" ").length==Integer.parseInt(numberOfNames)+1)
+								break;
+							
+							bufferNames = new char[64000];
+						}			
+						
+						
+						
+						if(resultNames.length>0)
+							resultNames=Arrays.copyOfRange(resultNames, 1, resultNames.length);
+						
+						String[] dividedNames = new String(resultNames).split(" ");
+						
+						String peer;
+						String listOfPeers="";
+						
+						for(int i=0;i<dividedNames.length;i++){
+							String[] dividedName = dividedNames[i].split("\\.");
+							if(dividedName.length==2 && (peer=CsvHandler.getInitiatorPeer(dividedName[0],Integer.parseInt(dividedName[1])))!=null){
+								listOfPeers+= dividedNames[i]+";"+peer + " ";
+							}
+						}
+						
+						answer=Constants.COMMAND_GETOTHERCHUNKS + " " + listOfPeers.split(" ").length + " ";
+						answer+= Constants.CRLF + Constants.CRLF;
+						answer+=listOfPeers;
+						
+						System.out.println(answer);
+						
+					}
+					
+					break;
+					
 				case  Constants.COMMAND_NAMES: 
 					
 					String numberOfNames = divided[4];
@@ -313,24 +385,30 @@ public class SSL_Handler implements Runnable {
 							bufferNames = new char[64000];
 						}			
 						
-						resultNames=Arrays.copyOfRange(resultNames, 1, resultNames.length);
+						System.out.println(new String(resultNames) + " " + (new String(resultNames)).length());
+						
+						if(resultNames.length>0)
+							resultNames=Arrays.copyOfRange(resultNames, 1, resultNames.length);
 						
 						String[] dividedNames = new String(resultNames).split(" ");
 						
 						for(int i=0;i<dividedNames.length;i++){
 							String[] dividedName = dividedNames[i].split(";");
-							if(!CsvHandler.checkUser(dividedName[0])){
+							if(dividedName.length==3 && !CsvHandler.checkUser(dividedName[0])){
 								User user = new User(dividedName[0],dividedName[1],dividedName[2]);
 								CsvHandler.createUser(user);
 							}
 						}
 						
 						List<String> names = CsvHandler.getUsers();
-						answer=Constants.COMMAND_NAMES + " " + names.size();
+						answer=Constants.COMMAND_NAMES + " " + names.size() + " ";
 						answer+= Constants.CRLF + Constants.CRLF;
 						for(int i=0;i<names.size();i++){
-							answer+=" " + names.get(i);
+							if(i+1!=names.size())
+								answer+=names.get(i).substring(0, names.get(i).length()-1) + " ";
+							else answer+=names.get(i);
 						}
+						
 					}
 					
 					break;
