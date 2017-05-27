@@ -529,7 +529,6 @@ public synchronized static List<String> getPeersChunk(String id,int chunkNumber)
 	}
 	
 	public synchronized static Chunk eliminateBadChunk(){
-		System.out.println("vou eliminar bad chunk");
 		
 		File metaData = new File("../metadata"+Peer.getPeerId()+"/ChunkList.csv");
 		Scanner scanner;
@@ -545,7 +544,7 @@ public synchronized static List<String> getPeersChunk(String id,int chunkNumber)
 				String[] divided = str.split(Constants.COMMA_DELIMITER);
 				if(!iHaveChunk){
 					iHaveChunk=true;
-					chunk=new Chunk(divided[0],Integer.parseInt(divided[1]),null,0);
+					chunk=new Chunk(divided[0],Integer.parseInt(divided[1]),HandleFiles.readFile("../Chunks"+Peer.getPeerId()+"/"+divided[0]+"."+divided[1]),0);
 					HandleFiles.eraseFile("../Chunks"+Peer.getPeerId()+"/"+divided[0]+"."+divided[1]);
 				}else metaArray.add(str);
 	        }

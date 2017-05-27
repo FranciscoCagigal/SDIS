@@ -121,8 +121,8 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 		}
 		
 		if(!imMaster){
-			//Runnable op = new ReadFile("1.0",new File("../Files1/test.txt"),1);
-			//new Thread(op).start();
+			Runnable op = new ReadFile("1.0",new File("../Files1/test.txt"),1);
+			new Thread(op).start();
 		
 			//Runnable op = new FileDeletion("","test.txt");
 			//new Thread(op).start();
@@ -130,8 +130,8 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 			//Runnable op = new ChunkRestore("","test.txt");
 			//new Thread(op).start();
 			
-			Runnable op = new ShareDatabase();
-			new Thread(op).start();
+			//Runnable op = new ShareDatabase();
+			//new Thread(op).start();
 		}
 		
 		

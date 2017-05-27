@@ -194,12 +194,51 @@ public class SSL_Handler implements Runnable {
 					
 					break;
 					
-				case "RECLAIM":
+				case Constants.COMMAND_REMOVED:{
+					
+					answer = "ok";
+					
+					char[] chunkData = new char[64000];
+					char[] chunkDataTotal = new char[64000];
+					
+					filename=divided[3];
+					chunkSize = divided[5];
+					chunkNumber = divided[4];
+					counter=0;
+					if(type.equals("1")){
+						while((counter+=in.read(chunkData))!=-1){
+							chunkDataTotal=Message.concatBytes(Handler.trim(chunkDataTotal),Handler.trim(chunkData));
+							chunkDataTotal=Handler.trim(chunkDataTotal);
+							chunkDataTotal=Arrays.copyOfRange(chunkDataTotal, 0, chunkDataTotal.length-2);
+							
+							if(counter-2==Integer.parseInt(chunkSize))
+								break;
+							
+							chunkData = new char[64000];
+						}	
+					}
+					
+					HashMap<String,Runnable> copy = new HashMap<String,Runnable>(Peer.getPeers());
+					Iterator<Entry<String,Runnable>> it = copy.entrySet().iterator();
+					while(it.hasNext()) {
+						Map.Entry<String,Runnable> pair = (Map.Entry<String,Runnable>)it.next();
+						String idThread = pair.getKey();
+						Runnable thread = pair.getValue();
+						Chunk chunk = new Chunk(filename,Integer.parseInt(chunkNumber),new String(chunkDataTotal).getBytes(),0);
+						if(!idThread.equals(id)){
+							answer+=idThread;
+							Message message = new Message(chunk,id,realName);
+							if(((SSL_Client) thread).sendMessage(message.backupMasterSSL()).equals("ok")){
+								CsvHandler.addMasterMeta(chunk, idThread, realName);
+							}
+						}
+						
+						it.remove();
+					}
 					
 					
-					
-					break;
-					
+				break;
+				}
 				case "RESTORE":
 					
 					if(type.equals("1")){

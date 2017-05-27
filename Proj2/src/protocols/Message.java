@@ -148,12 +148,15 @@ public class Message {
 	}
 	
 	protected byte[] createRemoved(){
-		String message=Constants.COMMAND_REMOVED+" "+Peer.getVersion() + " ";
-		message+=Peer.getPeerId() + " " ;
+		String message="1 ";
+		message+=Peer.getPeerId() + " pass ";
+		message+=Constants.COMMAND_REMOVED+" ";
 		message+= chunk.getFileId()+" ";
 		message+= chunk.getChunkNumber()+" ";
+		message+= chunk.getChunkData().length+" ";
 		message+= Constants.CRLF + Constants.CRLF;
-		byte[] buffer = message.getBytes(StandardCharsets.UTF_8);
+		
+		byte[] buffer = concatBytes(message.getBytes(StandardCharsets.UTF_8),chunk.getChunkData());	
 		
 		return buffer;
 	}

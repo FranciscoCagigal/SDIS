@@ -7,6 +7,7 @@ import java.net.MulticastSocket;
 
 import fileManager.Chunk;
 import fileManager.CsvHandler;
+import listeners.SSL_Client;
 import peer.Peer;
 
 public class SpaceReclaiming implements Runnable{
@@ -18,22 +19,11 @@ public class SpaceReclaiming implements Runnable{
 		
 		while(!Peer.iHaveSpace(directorySize())){
 			Chunk chunk;
-			if((chunk=CsvHandler.eliminateGoodChunk())!=null){
+			if((chunk=CsvHandler.eliminateBadChunk())!=null){
 				Message message = new Message(chunk,Peer.getVersion());
-				try {
-					sendToMC(message.createRemoved());
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}else if((chunk=CsvHandler.eliminateBadChunk())!=null){
-				Message message = new Message(chunk,Peer.getVersion());
-				try {
-					sendToMC(message.createRemoved());
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+				String result=((SSL_Client) Peer.getClientThread()).sendMessage(message.createRemoved());
+				System.out.println(result);
+
 			}
 		}
 	}
@@ -46,14 +36,5 @@ public class SpaceReclaiming implements Runnable{
 	            length += file.length();
 	    }
 		return length;
-	}
-
-	private void sendToMC(byte[] buffer) throws IOException {
-		DatagramPacket packet = new DatagramPacket(buffer, buffer.length, Peer.getMcAddress(),Peer.getMcPort());
-		MulticastSocket socket = new MulticastSocket();
-		socket.send(packet);
-		socket.close();
-	}
-
-	
+	}	
 }
