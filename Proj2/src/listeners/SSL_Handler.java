@@ -143,13 +143,13 @@ public class SSL_Handler implements Runnable {
 									CsvHandler.addMasterMeta(chunk, idThread, realName);
 									counterRepl++;
 								}
-							}else{
+							}/*else{
 								HandleFiles.writeFile("../Chunks"+Peer.getPeerId()+"/"+filename+"."+chunkNumber, new String(result).getBytes());
 								CsvHandler.addChunkMeta(chunk, id, realName);
 								CsvHandler.addMasterMeta(chunk, Peer.getPeerId()+"", realName);
 								counterRepl++;
 								answer+=Peer.getPeerId()+" ";
-							}
+							}*/
 							
 							if(replication==counterRepl)
 								break;
@@ -241,12 +241,17 @@ public class SSL_Handler implements Runnable {
 						String idThread = pair.getKey();
 						Runnable thread = pair.getValue();
 						Chunk chunk = new Chunk(filename,Integer.parseInt(chunkNumber),new String(chunkDataTotal).getBytes(),0);
-						if(!idThread.equals(id) && !idThread.equals(Peer.getPeerId())){
+						if(!idThread.equals(id) && !idThread.equals(Peer.getPeerId()+"")){
 							answer+=idThread;
 							Message message = new Message(chunk,id,realName);
 							if(((SSL_Client) thread).sendMessage(message.backupMasterSSL()).equals("ok")){
 								CsvHandler.addMasterMeta(chunk, idThread, realName);
 							}
+						}else if(idThread.equals(Peer.getPeerId()+"")){
+							HandleFiles.writeFile("../Chunks"+Peer.getPeerId()+"/"+filename+"."+chunkNumber, new String(chunkDataTotal).getBytes());
+							CsvHandler.addChunkMeta(chunk, id, realName);
+							CsvHandler.addMasterMeta(chunk, Peer.getPeerId()+"", realName);
+							answer=Peer.getPeerId()+"";
 						}
 						
 						it.remove();
