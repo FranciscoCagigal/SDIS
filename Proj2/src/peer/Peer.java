@@ -124,19 +124,30 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 			
 			
 			diskSpace=100*1000;
-			Runnable op = new SpaceReclaiming();
 			
-			//Runnable op = new ReadFile("1.0",new File("../Files1/test.txt"),1);
+			
+			//Runnable op = new ReadFile(new File("../Files1/test.txt"),1);
+			//new Thread(op).start();
+			
+			Runnable op = new ShareDatabase();
 			new Thread(op).start();
-		
+			
+			try {
+				Thread.sleep(2000);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+
+			//Runnable op = new SpaceReclaiming();
+			//new Thread(op).start();
 			//Runnable op = new FileDeletion("","test.txt");
 			//new Thread(op).start();
 			
-			//Runnable op = new ChunkRestore("","test.txt");
-			//new Thread(op).start();
+			op = new ChunkRestore("test.txt");
+			new Thread(op).start();
 			
-			//Runnable op = new ShareDatabase();
-			//new Thread(op).start();
+			
 		}
 		
 		
@@ -144,6 +155,10 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 			//reclaimEnh();
 		//}
 		
+	}
+	
+	public static void setClientThread(SSL_Client newClientConnection){
+		clientThread=newClientConnection;
 	}
 	
 	public static Runnable getClientThread(){
@@ -280,19 +295,19 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 
 	@Override
 	public void backup(User user,File file, int replDeg) throws RemoteException {
-		Runnable run=new ReadFile("1.0",file,replDeg);
+		Runnable run=new ReadFile(file,replDeg);
 		new Thread(run).start();
 	}
 
 	@Override
 	public void restore(User user,String filename) throws RemoteException{
-		Runnable run=new ChunkRestore("1.0",filename);
+		Runnable run=new ChunkRestore(filename);
 		new Thread(run).start();		
 	}
 
 	@Override
 	public void delete(User user,String filename) throws RemoteException{
-		Runnable run=new FileDeletion("1.0",filename);
+		Runnable run=new FileDeletion(filename);
 		new Thread(run).start();
 	}
 
@@ -487,6 +502,10 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 
 	public static void setSSLport(int sSLport) {
 		SSLport = sSLport;
+	}
+	
+	public static MulticastSocket getMCSocket(){
+		return mc;
 	}
 	
 }

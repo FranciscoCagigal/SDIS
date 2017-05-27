@@ -22,7 +22,6 @@ public class EnterSystem {
 			try {
 				Handler.sendToMc(message.findMaster());
 				Thread.sleep(1000);
-				System.out.println("oi");
 			} catch (IOException e) {
 				System.out.println("Falha ao enviar FINDMASTER");
 				e.printStackTrace();

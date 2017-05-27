@@ -20,7 +20,7 @@ public class ChunkRestore implements Runnable {
 	private String fileName;
 	private List<byte[]> chunkData = new ArrayList<byte[]>();
 	
-	public ChunkRestore(String version,String filename){
+	public ChunkRestore(String filename){
 		fileName=filename;
 	}
 

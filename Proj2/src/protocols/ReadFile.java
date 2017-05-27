@@ -16,7 +16,7 @@ public class ReadFile implements Runnable {
 	private File file;
 	private int replication;
 	
-	public ReadFile(String versionProtocol,File f, int replication) {
+	public ReadFile(File f, int replication) {
 		this.file = f;
 		this.replication = replication;
 	}

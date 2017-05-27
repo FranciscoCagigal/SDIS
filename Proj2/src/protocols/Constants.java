@@ -24,5 +24,6 @@ public interface Constants {
 	public static final String COMMAND_NAMES = "NAMES";
 	public static final String COMMAND_GETMYCHUNKS = "GETMYCHUNKS";
 	public static final String COMMAND_GETOTHERCHUNKS = "GETOTHERCHUNKS";
+	public static final String COMMAND_REPLACE = "REPLACE";
 
 }

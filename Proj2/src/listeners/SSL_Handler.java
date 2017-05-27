@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.Map.Entry;
 
 import javax.net.ssl.SSLSocket;
@@ -18,6 +19,8 @@ import fileManager.CsvHandler;
 import fileManager.HandleFiles;
 import peer.Peer;
 import protocols.Constants;
+import protocols.Election;
+import protocols.EnterSystem;
 import protocols.Message;
 import user.User;
 
@@ -209,6 +212,19 @@ public class SSL_Handler implements Runnable {
 					
 					break;
 					
+				case Constants.COMMAND_REPLACE:{
+					
+					filename=divided[4];
+					String oldPeer = divided[6];
+					String newPeer = divided[7];
+					chunkNumber = divided[5];
+					Chunk chunk = new Chunk(filename,Integer.parseInt(chunkNumber),null,0);
+					System.out.println(oldPeer);
+					System.out.println(newPeer);
+					CsvHandler.replacePeerInitiator(chunk, oldPeer, newPeer);
+					
+					break;
+				}
 				case Constants.COMMAND_REMOVED:{
 					
 					answer = "ok";
@@ -216,16 +232,17 @@ public class SSL_Handler implements Runnable {
 					char[] chunkData = new char[64000];
 					char[] chunkDataTotal = new char[64000];
 					
-					filename=divided[3];
-					chunkSize = divided[5];
-					chunkNumber = divided[4];
+					filename=divided[4];
+					chunkSize = divided[6];
+					chunkNumber = divided[5];
 					counter=0;
 					if(type.equals("1")){
 						while((counter+=in.read(chunkData))!=-1){
 							chunkDataTotal=Message.concatBytes(Handler.trim(chunkDataTotal),Handler.trim(chunkData));
 							chunkDataTotal=Handler.trim(chunkDataTotal);
 							chunkDataTotal=Arrays.copyOfRange(chunkDataTotal, 0, chunkDataTotal.length-2);
-							
+							System.out.println("counter: "+counter);
+							System.out.println("chunkSize: "+chunkSize);
 							if(counter-2==Integer.parseInt(chunkSize))
 								break;
 							
@@ -236,22 +253,39 @@ public class SSL_Handler implements Runnable {
 
 					HashMap<String,Runnable> copy = new HashMap<String,Runnable>(Peer.getPeers());
 					Iterator<Entry<String,Runnable>> it = copy.entrySet().iterator();
+					String newPeerId="";
+					Chunk chunk = new Chunk(filename,Integer.parseInt(chunkNumber),new String(chunkDataTotal).getBytes(),0);
 					while(it.hasNext()) {
 						Map.Entry<String,Runnable> pair = (Map.Entry<String,Runnable>)it.next();
 						String idThread = pair.getKey();
 						Runnable thread = pair.getValue();
-						Chunk chunk = new Chunk(filename,Integer.parseInt(chunkNumber),new String(chunkDataTotal).getBytes(),0);
+						
 						if(!idThread.equals(id) && !idThread.equals(Peer.getPeerId()+"")){
-							answer+=idThread;
 							Message message = new Message(chunk,id,realName);
 							if(((SSL_Client) thread).sendMessage(message.backupMasterSSL()).equals("ok")){
-								CsvHandler.addMasterMeta(chunk, idThread, realName);
+								CsvHandler.replacePeer(chunk,idThread,Peer.getPeerId()+"");
+								newPeerId=idThread;
+								break;
 							}
 						}else if(idThread.equals(Peer.getPeerId()+"")){
 							HandleFiles.writeFile("../Chunks"+Peer.getPeerId()+"/"+filename+"."+chunkNumber, new String(chunkDataTotal).getBytes());
-							CsvHandler.addChunkMeta(chunk, id, realName);
-							CsvHandler.addMasterMeta(chunk, Peer.getPeerId()+"", realName);
-							answer=Peer.getPeerId()+"";
+							CsvHandler.addChunkMeta(chunk, id, CsvHandler.getRealName(chunk.getFileId()));
+							CsvHandler.replacePeer(chunk,id,Peer.getPeerId()+"");
+							newPeerId=Peer.getPeerId()+"";
+							break;
+						}
+						
+						it.remove();
+					}
+					copy = new HashMap<String,Runnable>(Peer.getPeers());
+					it = copy.entrySet().iterator();
+					while(it.hasNext()) {
+						Map.Entry<String,Runnable> pair = (Map.Entry<String,Runnable>)it.next();
+						String idThread = pair.getKey();
+						Runnable thread = pair.getValue();
+						if(idThread.equals(CsvHandler.getInitiatorPeer(chunk.getFileId(), chunk.getChunkNumber()).split(Constants.COMMA_DELIMITER)[0])){
+							Message message = new Message(chunk,id,newPeerId);
+							((SSL_Client) thread).sendMessage(message.createReplace());
 						}
 						
 						it.remove();
@@ -425,14 +459,37 @@ public class SSL_Handler implements Runnable {
 			
 			
 		} catch (IOException e) {
+			System.out.println("foi abaixo a socket server");
 			
-			System.out.println("SHITTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT");
-			e.printStackTrace();
+			if(!Peer.amIMaster()){
+				Random rnd = new Random();
+				try {
+					Thread.sleep(rnd.nextInt(1000));
+					if(!Handler.isElectionStarted()){
+						Election election = new Election(Peer.getMCSocket());
+						election.startElection();
+					}
+					Thread.sleep(3000);
+					Handler.setElectionStarted(false);
+					if(Peer.amIMaster()){
+						
+					}else{
+						EnterSystem entry = new EnterSystem(Peer.getMCSocket());
+						entry.findMaster();
+						Thread.sleep(3000);
+						SSL_Client clientThread = new SSL_Client(Peer.getMasterAddress().getHostName(),Peer.getMasterPort());
+						new Thread(clientThread).start();
+						Peer.setClientThread(clientThread);
+					}
+					
+				} catch (InterruptedException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+			}
+			
+			//e.printStackTrace();
 		}
-				
-		
-				
-		
 
 		System.out.println("vou fechar");
 		out.close();
@@ -442,5 +499,6 @@ public class SSL_Handler implements Runnable {
 			
 			e.printStackTrace();
 		}
+		
 	}
 }

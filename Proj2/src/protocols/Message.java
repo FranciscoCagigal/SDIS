@@ -181,6 +181,18 @@ public class Message {
 		return buffer;
 	}
 	
+	public byte[] createReplace(){
+		String message="1 ";
+		message+=Peer.getPeerId() + " pass ";
+		message+=Constants.COMMAND_REPLACE+" ";
+		message+= chunk.getFileId()+" ";
+		message+= chunk.getChunkNumber()+" ";
+		message+= originalPeer+" ";
+		message+= realName+" ";
+		message+= Constants.CRLF;
+		return message.getBytes();
+	}
+	
 	/*public byte[] createDeleted(){
 		String message=Constants.COMMAND_DELETED+" "+version + " ";
 		message+=Peer.getPeerId() + " " ;

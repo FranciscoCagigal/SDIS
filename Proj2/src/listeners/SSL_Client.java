@@ -50,9 +50,6 @@ public class SSL_Client implements Runnable {
 			socket = (SSLSocket) ssf.createSocket(host,port);			
 			out = new PrintWriter(socket.getOutputStream(), true);			
 			in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-					
-			// display response
-			String received;
 			
 			System.out.println("vou iniciar cliente ");
 			
@@ -81,6 +78,7 @@ public class SSL_Client implements Runnable {
 	}
 	
 	public synchronized String sendMessage(byte[] message){
+		
 		out.println(new String(message));
 		String received = "";
 		try {
@@ -218,7 +216,8 @@ public class SSL_Client implements Runnable {
 			//System.out.println("Request answer: " + received);			
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
+			//e.printStackTrace();
+			System.out.println("foi abaixo a socket client");
 		}
 		return received;
 	}

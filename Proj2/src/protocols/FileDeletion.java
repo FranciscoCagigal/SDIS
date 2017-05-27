@@ -10,7 +10,7 @@ import peer.Peer;
 public class FileDeletion implements Runnable {
 	private String fileName, version;
 	
-	public FileDeletion(String version,String filename){
+	public FileDeletion(String filename){
 		this.fileName=filename;
 	}
 

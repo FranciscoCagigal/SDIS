@@ -21,7 +21,16 @@ public class Handler implements Runnable{
 	private DatagramPacket packet;
 	private Chunk chunk;
 	private static Long masterTime = Long.MAX_VALUE;
+	private static boolean electionStarted=false;
 	
+	public static boolean isElectionStarted() {
+		return electionStarted;
+	}
+
+	public static void setElectionStarted(boolean value) {
+		electionStarted = value;
+	}
+
 	public Handler(DatagramPacket packet1){
 		packet=packet1;
 	}
@@ -76,17 +85,18 @@ public class Handler implements Runnable{
 	}
 	
 	private void electionCandidate(String[] header){
-		if(Long.parseLong(header[2])<Peer.getTime()){
+		if(Long.parseLong(header[2])<Peer.getTime() && Long.parseLong(header[2])<masterTime){
 			Peer.setMasterAddress(packet.getAddress());
 			Peer.setMasterPort(packet.getPort());
 			masterTime=Long.parseLong(header[2]);
 			Peer.setImMaster(false);
-		}else if(masterTime==Long.MAX_VALUE && Long.parseLong(header[2])==Peer.getTime()){
+		}else if(masterTime>Peer.getTime() && Long.parseLong(header[2])==Peer.getTime()){
 			Peer.setImMaster(true);
 		}
 	}
 	
 	private void election(String[] header){
+		electionStarted=true;
 		masterTime = Long.MAX_VALUE;
 		
 		Random rnd = new Random();
