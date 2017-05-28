@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Map.Entry;
+import java.util.concurrent.Semaphore;
 
 import javax.net.ssl.SSLSocket;
 
@@ -29,7 +30,9 @@ public class SSL_Handler implements Runnable {
 	private SSLSocket socket;
 	private PrintWriter out=null;
 	private BufferedReader in=null;
-	
+	private boolean awaitedAnswer=false;
+	private String answer="";
+	private final Semaphore sem = new Semaphore(0, true);
 	
 	public SSL_Handler(SSLSocket socket) {
 		
@@ -50,6 +53,12 @@ public class SSL_Handler implements Runnable {
 			
 			while(true){
 				received = in.readLine();
+				
+				if(awaitedAnswer){
+					answer=received;
+					sem.release();
+					continue;
+				}
 				
 				System.out.println("vou ler input" + received);
 				
@@ -96,9 +105,7 @@ public class SSL_Handler implements Runnable {
 				
 				byte[] bytesBody;
 				
-				String yolo=in.readLine();
-				
-				System.out.println("yolo" + yolo);
+				in.readLine();
 				
 				switch(protocol){
 				
@@ -147,13 +154,13 @@ public class SSL_Handler implements Runnable {
 									CsvHandler.addMasterMeta(chunk, idThread, realName);
 									counterRepl++;
 								}
-							}/*else{
+							}else{
 								HandleFiles.writeFile("../Chunks"+Peer.getPeerId()+"/"+filename+"."+chunkNumber, new String(result).getBytes());
 								CsvHandler.addChunkMeta(chunk, id, realName);
 								CsvHandler.addMasterMeta(chunk, Peer.getPeerId()+"", realName);
 								counterRepl++;
 								answer+=Peer.getPeerId()+" ";
-							}*/
+							}
 							
 							if(replication==counterRepl)
 								break;
@@ -179,7 +186,7 @@ public class SSL_Handler implements Runnable {
 												
 							if(!idThread.equals(Peer.getPeerId()+"") && peersContained.contains(idThread)){
 								Message message = new Message(chunk,"");
-								((SSL_Handler) thread).sendMessage(message.deleteMasterSSL());
+								((SSL_Handler) thread).sendMessageNoRspns(message.deleteMasterSSL());
 								CsvHandler.deleteChunks(filename, "../metadata"+Peer.getPeerId()+"/AllChunks.csv");
 							}
 							
@@ -188,20 +195,6 @@ public class SSL_Handler implements Runnable {
 					}
 					
 					break;
-					
-				case Constants.COMMAND_REPLACE:{
-					
-					filename=divided[4];
-					String oldPeer = divided[6];
-					String newPeer = divided[7];
-					chunkNumber = divided[5];
-					Chunk chunk = new Chunk(filename,Integer.parseInt(chunkNumber),null,0);
-					System.out.println(oldPeer);
-					System.out.println(newPeer);
-					CsvHandler.replacePeerInitiator(chunk, oldPeer, newPeer);
-					
-					break;
-				}
 				case Constants.COMMAND_REMOVED:{
 					
 					answer = "ok";
@@ -237,7 +230,7 @@ public class SSL_Handler implements Runnable {
 						
 						if(!idThread.equals(id) && !idThread.equals(Peer.getPeerId()+"")){
 							Message message = new Message(chunk,id,realName);
-							if(((SSL_Client) thread).sendMessage(message.backupMasterSSL()).equals("ok")){
+							if(((SSL_Handler) thread).sendMessage(message.backupMasterSSL()).equals("ok")){
 								CsvHandler.replacePeer(chunk,idThread,Peer.getPeerId()+"");
 								newPeerId=idThread;
 								break;
@@ -260,7 +253,8 @@ public class SSL_Handler implements Runnable {
 						Runnable thread = pair.getValue();
 						if(idThread.equals(CsvHandler.getInitiatorPeer(chunk.getFileId(), chunk.getChunkNumber()).split(Constants.COMMA_DELIMITER)[0])){
 							Message message = new Message(chunk,id,newPeerId);
-							((SSL_Client) thread).sendMessage(message.createReplace());
+							((SSL_Handler) thread).sendMessageNoRspns(message.createReplace());
+							break;
 						}
 						
 						it.remove();
@@ -301,7 +295,7 @@ public class SSL_Handler implements Runnable {
 								if(!idThread.equals(Peer.getPeerId()+"") && peers.contains(idThread)){
 									
 									Message message = new Message(chunk,"");
-									((SSL_Handler) thread).sendMessage(message.restoreMasterSSL());
+									((SSL_Handler) thread).sendMessageNoRspns(message.restoreMasterSSL());
 									
 									char[] chunkData = new char[64000];
 									char[] chunkDataTotal = new char[64000];
@@ -334,14 +328,6 @@ public class SSL_Handler implements Runnable {
 						out.println(file);
 						out.println("ok");
 						System.out.println("o file tem " + file.length());
-					}else if(type.equals("2")){
-						chunkNumber = divided[5];
-						filename = divided[4];
-						byte[] chunkData = HandleFiles.readFile("../Chunks"+Peer.getPeerId()+"/"+filename+"."+chunkNumber);
-						chunkData=Handler.trim(chunkData);
-						Chunk chunk = new Chunk(filename,Integer.parseInt(chunkNumber),chunkData,0);
-						Message message = new Message(chunk);
-						answer = new String(message.answerRestoreSSL());
 					}
 					in.readLine();
 					
@@ -500,10 +486,21 @@ public class SSL_Handler implements Runnable {
 		
 	}
 	
-	private String sendMessage(byte[] message){
+	private void sendMessageNoRspns(byte[] message){
 		
 		out.println(new String(message));
-		
-		return "ok";
+	}
+	
+	private String sendMessage(byte[] message){
+		awaitedAnswer=true;
+		out.println(new String(message));
+		try {
+			sem.acquire();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		awaitedAnswer=false;
+		return answer;
 	}
 }

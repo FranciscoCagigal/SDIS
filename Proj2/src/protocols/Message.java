@@ -178,9 +178,7 @@ public class Message {
 	}
 	
 	public byte[] createReplace(){
-		String message="1 ";
-		message+=Peer.getPeerId() + " pass ";
-		message+=Constants.COMMAND_REPLACE+" ";
+		String message=Constants.COMMAND_REPLACE+" ";
 		message+= chunk.getFileId()+" ";
 		message+= chunk.getChunkNumber()+" ";
 		message+= originalPeer+" ";

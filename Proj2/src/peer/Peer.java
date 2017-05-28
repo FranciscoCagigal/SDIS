@@ -55,19 +55,8 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 	
 	private static SSL_Server server;
 	
-	//restore	
-	private static HashMap<Chunk,Boolean>waitingToBeReceived = new HashMap<Chunk,Boolean>();
-	private static HashMap<Chunk,Boolean>waitingToBeSent = new HashMap<Chunk,Boolean>();
-	
 	//reclaim
 	private static int diskSpace;
-	private static HashMap<Chunk,Boolean>reclaimToBeSent = new HashMap<Chunk,Boolean>();
-	
-	//backupenh
-	private static HashMap<String,Integer> backupenh = new  HashMap<String,Integer>();
-	
-	//deleteenh
-	private static HashMap<String,Integer> deleteenh = new  HashMap<String,Integer>();
 	
 	//threads
 	private static Runnable mc1;
@@ -139,21 +128,17 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 				e.printStackTrace();
 			}
 
-			//Runnable op = new SpaceReclaiming();
+			op = new SpaceReclaiming();
 			//new Thread(op).start();
+			
 			//op = new FileDeletion("test.txt");
 			//new Thread(op).start();
 			
-			op = new ChunkRestore("test.txt");
+			//op = new ChunkRestore("test.txt");
 			//new Thread(op).start();
 			
 			
 		}
-		
-		
-		//if(!protocolVersion.equals("1.0")){
-			//reclaimEnh();
-		//}
 		
 	}
 	
@@ -167,12 +152,6 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 	
 	public static void setImMaster(Boolean value){
 		imMaster=value;
-	}
-	
-	public static void addToPeers(String id, InetAddress address, int port){
-		//Runnable client = new SSL_Client(address.getHostName(),port);
-		//new Thread(client).start();
-		//peerThreads.put(id, client);
 	}
 	
 	public static HashMap<String,Runnable> getPeers(){
@@ -350,140 +329,10 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 	
 	public static int getMcPort(){
 		return mcPort;
-	}
-	
-	//restore: initiator host
-	public static boolean askedForChunk(Chunk chunk){
-		return waitingToBeReceived.containsKey(chunk);
-	}
-	
-	public static boolean hasChunkBeenReceived(Chunk chunk){
-		return waitingToBeReceived.get(chunk);
-	}
-	
-	public static void wantReceivedChunk(Chunk chunk){
-		waitingToBeReceived.put(chunk,false);
-	}
-	
-	public static byte[] getDataFromReceivedChunk(Chunk chunk){
-		for(Chunk chunkReturned : waitingToBeReceived.keySet()){
-			if(chunkReturned.equals(chunk))
-				return chunkReturned.getChunkData();
-		}		
-		return null;
-	}
-	
-	public static void addReceivedChunk(Chunk chunk){
-		waitingToBeReceived.remove(chunk);
-		waitingToBeReceived.put(chunk,true);
-	}
-	
-	public static void removeReceivedChunk(Chunk chunk){
-		waitingToBeReceived.remove(chunk);
-	}
-	
-	//restore: other peers
-	
-	public static boolean iWantToSendChunk(Chunk chunk){
-		return waitingToBeSent.containsKey(chunk);
-	}
-	
-	public static boolean wasChunkAlreadySent(Chunk chunk){
-		return waitingToBeSent.get(chunk);
-	}
-	
-	public static void chunkTobeSentWasRcvd(Chunk chunk){
-		waitingToBeSent.remove(chunk);
-		waitingToBeSent.put(chunk,true);
-	}
-	
-	public static void askedToSendChunk(Chunk chunk){
-		waitingToBeSent.put(chunk,false);
-	}
-	
-	public static void removeChunkSent(Chunk chunk){
-		waitingToBeSent.remove(chunk);
-	}
-	
+	}	
+
 	public static String getVersion(){
 		return protocolVersion;
-	}
-	//end
-	
-	//backup enh : start
-	public static void addToBackupEnhancement(String str){
-		backupenh.put(str, 0);
-	}
-	//backup enh : add 1 to key
-	public static void changeBackupEnhancement(String str){
-		int i= backupenh.get(str);
-		backupenh.remove(str);
-		backupenh.put(str, i+1);
-	}
-	//backup enh : get replication
-	public static int getBackupEnhancement(String str){
-		return backupenh.get(str);
-	}
-	//backup enh : contain key
-	public static Boolean containsBackupEnhancement(String str){
-		return backupenh.containsKey(str);
-	}
-	//backup enh : remove key
-	public static void removeBackupEnhancement(String str){
-		backupenh.remove(str);
-	}
-	
-	//delete enh : start
-	public static void addToDeleteEnhancement(String str){
-		deleteenh.put(str, 0);
-	}
-	//delete enh : add 1 to key
-	public static void changeDeleteEnhancement(String str){
-		int i= deleteenh.get(str);
-		deleteenh.remove(str);
-		deleteenh.put(str, i+1);
-	}
-	//delete enh : get replication
-	public static int getDeleteEnhancement(String str){
-		return deleteenh.get(str);
-	}
-	//delete enh : contain key
-	public static Boolean containsDeleteEnhancement(String str){
-		return deleteenh.containsKey(str);
-	}
-	//delete enh : remove key
-	public static void removeDeleteEnhancement(String str){
-		deleteenh.remove(str);
-	}
-	
-	//reclaim
-	public static boolean reclaimHasChunk(Chunk chunk){
-		return reclaimToBeSent.containsKey(chunk);
-	}
-	
-	public static boolean reclaimChunkAlreadySent(Chunk chunk){
-		return reclaimToBeSent.get(chunk);
-	}
-	
-	public static void reclaimToSendChunk(Chunk chunk){
-		reclaimToBeSent.put(chunk,false);
-	}
-	
-	public static void removeReclaimSent(Chunk chunk){
-		reclaimToBeSent.remove(chunk);
-	}
-	
-	public static void reclaimTobeSentWasRcvd(Chunk chunk){
-		reclaimToBeSent.remove(chunk);
-		reclaimToBeSent.put(chunk,true);
-	}
-	
-	private static void reclaimEnh(){
-		List<Chunk> badChunks = CsvHandler.getBadChunks();
-		for(Chunk chunk : badChunks){
-			Runnable run=new ChunkBackup(chunk,"1.0");
-			new Thread(run).start();
-		}
 	}
 	
 	public static Boolean amIMaster(){

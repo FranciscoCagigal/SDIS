@@ -203,8 +203,6 @@ public class SSL_Client implements Runnable {
 							while((counter+=in.read(buffer))!=-1){
 								result=Message.concatBytes(Handler.trim(result),Handler.trim(buffer));
 
-								if(counter<50)
-									System.out.println("lol " + new String(buffer).substring(0, counter));
 								if(counter-2==Integer.parseInt(chunkSize))
 									break;
 								
@@ -217,6 +215,7 @@ public class SSL_Client implements Runnable {
 							HandleFiles.writeFile("../Chunks"+Peer.getPeerId()+"/"+filename+"."+chunkNumber, new String(result).getBytes());
 							Chunk chunk = new Chunk(filename,Integer.parseInt(chunkNumber),null,0);
 							CsvHandler.addChunkMeta(chunk, originalPeer, realName);
+							out.println("ok");
 						}
 						else if(divided[0].equals(Constants.COMMAND_DELETE)){
 							 String filename = divided[1];
@@ -225,6 +224,7 @@ public class SSL_Client implements Runnable {
 							 CsvHandler.deleteChunks(filename, "../metadata"+Peer.getPeerId()+"/ChunkList.csv");
 							 received="ok";
 						}else if(divided[0].equals(Constants.COMMAND_RESTORE)){
+							
 							String chunkNumber = divided[2];
 							String filename = divided[1];
 							byte[] chunkData = HandleFiles.readFile("../Chunks"+Peer.getPeerId()+"/"+filename+"."+chunkNumber);
@@ -232,6 +232,16 @@ public class SSL_Client implements Runnable {
 							Chunk chunk = new Chunk(filename,Integer.parseInt(chunkNumber),chunkData,0);
 							Message message1 = new Message(chunk);
 							out.println(new String(message1.answerRestoreSSL()));
+							
+						}else if(divided[0].equals(Constants.COMMAND_REPLACE)){
+							
+							String filename=divided[1];
+							String oldPeer = divided[3];
+							String newPeer = divided[4];
+							String chunkNumber = divided[2];
+							Chunk chunk = new Chunk(filename,Integer.parseInt(chunkNumber),null,0);
+							CsvHandler.replacePeerInitiator(chunk, oldPeer, newPeer);
+							
 						}
 					}		
 			}
