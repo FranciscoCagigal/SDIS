@@ -50,7 +50,7 @@ public class Handler implements Runnable{
 				foundMaster(header);
 				break;		
 			case Constants.COMMAND_BEGINELECTION:
-				election(header);
+				election();
 				break;
 			case Constants.COMMAND_DISPUTEMASTER:
 				electionCandidate(header);
@@ -61,17 +61,17 @@ public class Handler implements Runnable{
 	}
 	
 	private void electionCandidate(String[] header){
-		if(Long.parseLong(header[2])<Peer.getTime() && Long.parseLong(header[2])<masterTime){
+		if(Long.parseLong(header[1])<Peer.getTime() && Long.parseLong(header[1])<masterTime){
 			Peer.setMasterAddress(packet.getAddress());
 			Peer.setMasterPort(packet.getPort());
 			masterTime=Long.parseLong(header[2]);
 			Peer.setImMaster(false);
-		}else if(masterTime>Peer.getTime() && Long.parseLong(header[2])==Peer.getTime()){
+		}else if(masterTime>Peer.getTime() && Long.parseLong(header[1])==Peer.getTime()){
 			Peer.setImMaster(true);
 		}
 	}
 	
-	private void election(String[] header){
+	private void election(){
 		electionStarted=true;
 		masterTime = Long.MAX_VALUE;
 		
@@ -79,7 +79,7 @@ public class Handler implements Runnable{
 		try {
 			Thread.sleep(rnd.nextInt(1000));
 			if(masterTime>Peer.getTime()){
-				Message message = new Message(null,Peer.getVersion());
+				Message message = new Message(null,"");
 				sendToMc(message.disputeMaster());
 			}
 		} catch (InterruptedException e) {
@@ -93,17 +93,22 @@ public class Handler implements Runnable{
 	
 	private void foundMaster(String[] header){
 		Peer.setMasterAddress(packet.getAddress());
-		Peer.setMasterPort(Integer.parseInt(header[2]));
+		Peer.setMasterPort(Integer.parseInt(header[1]));
 	}
 	
 	private void findMaster(String header[]){
-		if(Peer.amIMaster()){
-			Message message = new Message(null,Peer.getVersion());
-			try {
-				sendToMc(message.acknowledgeMaster());
-			} catch (IOException e) {
-				System.out.println("erro ao enviar IMMASTER");
-				e.printStackTrace();
+		if( !CsvHandler.checkPeer(header[1]) || CsvHandler.getPeerPassword(header[1]).equals(header[3])){
+			if(!CsvHandler.checkPeer(header[1])){
+				CsvHandler.createPeer(header[1], header[3]);
+			}
+			if(Peer.amIMaster()){
+				Message message = new Message(null,"");
+				try {
+					sendToMc(message.acknowledgeMaster());
+				} catch (IOException e) {
+					System.out.println("erro ao enviar IMMASTER");
+					e.printStackTrace();
+				}
 			}
 		}
 	}

@@ -138,7 +138,7 @@ public class Message {
 	}
 	
 	public byte[] findMaster(){
-		String message=Constants.COMMAND_FINDMASTER+" "+Peer.getPeerId() + " " + Peer.getSSLport();
+		String message=Constants.COMMAND_FINDMASTER+" "+Peer.getPeerId() + " " + Peer.getSSLport() + " " + Peer.getPassword();
 		message+= Constants.CRLF + Constants.CRLF;
 		byte[] buffer = message.getBytes(StandardCharsets.UTF_8);
 		
@@ -146,7 +146,7 @@ public class Message {
 	}
 	
 	public byte[] disputeMaster(){
-		String message=Constants.COMMAND_DISPUTEMASTER+" "+Peer.getVersion() + " ";
+		String message=Constants.COMMAND_DISPUTEMASTER + " ";
 		message+=Peer.getTime()+" ";
 		message+= Constants.CRLF + Constants.CRLF;
 		byte[] buffer = message.getBytes(StandardCharsets.UTF_8);
@@ -155,7 +155,7 @@ public class Message {
 	}
 	
 	public byte[] acknowledgeMaster(){
-		String message=Constants.COMMAND_IMMASTER+" "+Peer.getVersion() + " " + Peer.getSSLport();
+		String message=Constants.COMMAND_IMMASTER +  " " + Peer.getSSLport();
 		message+= Constants.CRLF + Constants.CRLF;
 		byte[] buffer = message.getBytes(StandardCharsets.UTF_8);
 		
@@ -163,7 +163,7 @@ public class Message {
 	}
 	
 	protected byte[] beginElection(){
-		String message=Constants.COMMAND_BEGINELECTION+" "+Peer.getVersion() + " ";
+		String message=Constants.COMMAND_BEGINELECTION+ " ";
 		message+= Constants.CRLF + Constants.CRLF;
 		byte[] buffer = message.getBytes(StandardCharsets.UTF_8);
 		

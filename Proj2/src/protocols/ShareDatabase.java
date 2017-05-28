@@ -6,9 +6,7 @@ import peer.Peer;
 
 public class ShareDatabase implements Runnable {
 
-	public ShareDatabase(){
-		
-	}
+	public ShareDatabase(){}
 	
 	public void run() {
 		Message message = new Message(CsvHandler.getUsers());

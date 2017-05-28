@@ -32,14 +32,11 @@ public class TestApp {
 		
 		peer = new Peer();
 		
+		Registry registry = LocateRegistry.getRegistry("localhost");
+		peer= (IPeer)registry.lookup(args[0]); 
+		
 		chooseMenu();
 		
-		if(!validateArgs(args)){
-				System.out.println("non valid args");
-			return;
-		}
-		
-		//callServer(args);
 	}
 	
 	private static void chooseMenu() {
@@ -78,7 +75,8 @@ public class TestApp {
 						System.out.print("Enter File Name: ");
 						fileName = inFromUser.readLine();
 						File f = new File(fileName);
-						if(!f.exists() || !f.isDirectory()) {
+						
+						if(!f.exists() || f.isDirectory()) {
 							System.out.println("Incorrect File Name - Press Enter");
 							System.in.read();
 							System.out.println("\n\n");
@@ -87,13 +85,13 @@ public class TestApp {
 						System.out.print("Enter Desired Replication Degree: ");
 						replicationDegree = in.nextInt();
 						
-						peer.backup(user, f.getAbsoluteFile(), replicationDegree);
+						peer.backup(f.getAbsoluteFile(), replicationDegree);
 						break;
 					case 2:
 						System.out.print("Enter File Name: ");
 						fileName = inFromUser.readLine();
 						
-						peer.restore(user, fileName);
+						peer.restore(fileName);
 						break;
 					case 3:
 						System.out.println("Leaving!!!\n");
@@ -116,8 +114,9 @@ public class TestApp {
 					case 1:
 						System.out.print("Enter File Name: ");
 						fileName = inFromUser.readLine();
-						File f = new File(fileName);
-						if(!f.exists() || !f.isDirectory()) {
+						File f = new File("Files1/test.txt");
+						System.out.println(f.getAbsolutePath());
+						if(!f.exists() || f.isDirectory()) {
 							System.out.println("Incorrect File Name - Press Enter");
 							System.in.read();
 							System.out.println("\n\n");
@@ -126,23 +125,23 @@ public class TestApp {
 						System.out.print("Enter Desired Replication Degree: ");
 						replicationDegree = in.nextInt();
 						
-						peer.backup(user, f.getAbsoluteFile(), replicationDegree);
+						peer.backup( f.getAbsoluteFile(), replicationDegree);
 						break;
 					case 2:
 						System.out.print("Enter File Name: ");
 						fileName = inFromUser.readLine();
 						
-						peer.restore(user, fileName);
+						peer.restore( fileName);
 						break;
 					case 3:
 						System.out.print("Enter Desired Space to Reclaim: ");
 						spaceToReclaim = in.nextInt();
-						peer.reclaim(user, spaceToReclaim);
+						peer.reclaim(spaceToReclaim);
 						break;
 					case 4:
 						System.out.print("Enter File Name: ");
 						fileName = inFromUser.readLine();
-						peer.delete(user, fileName);
+						peer.delete(fileName);
 						break;
 					case 5:
 						System.out.println("Leaving!!!\n");
@@ -202,24 +201,16 @@ public class TestApp {
 		try {
 			System.out.print("Please enter a username> ");
 			name = inFromUser.readLine();
-			if (!CsvHandler.checkUser(name)){
-				System.out.println("User doesn't exist - Press enter");
-				System.in.read();
-				System.out.println("\n\n");
-				return;
-			}
-			
+
 			System.out.print("Please enter a password for user > ");
 			password = inFromUser.readLine();
-			if (!password.equals(CsvHandler.getUserPassword(name))){
+			String level = peer.LoginUser(name,password);
+			if (level==null){
 				System.out.println("Wrong password - Press enter");
 				System.in.read();
 				System.out.println("\n\n");
 				return;
-			}
-			
-			String level = CsvHandler.getUserLevel(name);
-			
+			}			
 			User user = new User(name, password, level);
 			
 			System.out.println("Login successful - Press enter");
@@ -259,116 +250,4 @@ public class TestApp {
 		System.out.print("Please choose an option (1 to 3) >");
 	}
 	
-	private static boolean validateArgs(String[] args) throws MalformedURLException, RemoteException, NotBoundException{
-
-		
-		if(args.length>4||args.length<2){
-			System.out.println("Usage: TestApp <peer_ap> <operation> <opnd_1> <opnd_2>");
-			return false;
-		}
-		
-		Registry registry = LocateRegistry.getRegistry("localhost");
-		peer= (IPeer)registry.lookup(args[0]); 
-		
-		switch(args[1].toLowerCase()){
-		
-			case "backup":{
-				File f = new File(args[2]);
-				if(args.length!=4 || !f.exists() || f.isDirectory()||!args[3].matches("^-?\\d+$"))
-					return false;
-				break;
-			}
-			case "backupenh":{
-				File f = new File(args[2]);
-				if(args.length!=4 || !f.exists() || f.isDirectory()||!args[3].matches("^-?\\d+$"))
-					return false;
-				break;
-			}
-			case "restore":{
-				if(args.length!=3){
-					return false;
-				}
-				break;
-			}
-			case "restoreenh":{
-				if(args.length!=3){
-					return false;
-				}
-				break;
-			}
-			case "delete":{
-				if(args.length!=3){
-					return false;
-				}
-				break;
-			}
-			case "deleteenh":{
-				if(args.length!=3){
-					return false;
-				}
-				break;
-			}
-			case "reclaim":{
-				if(args.length!=3 || !args[2].matches("^-?\\d+$")){
-					return false;
-				}
-				break;
-			}
-			case "state":{
-				if(args.length!=2){
-					return false;
-				}
-				break;
-			}
-			default: return false;
-		
-		}		
-		return true;
-	}
-	
-	private static void callServer(String[] args) throws NumberFormatException, RemoteException{		
-		
-		/*
-		switch(args[1].toLowerCase()){
-		
-			case "backup":{
-				peer.backup("1.0",new File(args[2]).getAbsoluteFile(), Integer.parseInt(args[3]));
-				break;
-			}
-			case "backupenh":{
-				peer.backup("2.0",new File(args[2]).getAbsoluteFile(), Integer.parseInt(args[3]));
-				break;
-			}
-			case "restore":{
-				peer.restore("1.0",new File(args[2]).getAbsoluteFile().getName());
-				break;
-			}
-			case "restoreenh":{
-				peer.restore("2.0",new File(args[2]).getAbsoluteFile().getName());
-				break;
-			}
-			case "delete":{
-				peer.delete("1.0",new File(args[2]).getAbsoluteFile().getName());
-				break;
-			}
-			case "deleteenh":{
-				peer.delete("2.0",new File(args[2]).getAbsoluteFile().getName());
-				break;
-			}
-			case "reclaim":{
-				peer.reclaim(Integer.parseInt(args[2]));
-				break;
-			}
-			case "state":{
-				String temp = peer.state();
-				String[] split = temp.split("/");
-				for(String s : split) {
-					System.out.println(s);
-				}
-				break;
-			}
-		
-		}
-		*/
-	}
 }

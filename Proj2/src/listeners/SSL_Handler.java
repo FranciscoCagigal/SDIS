@@ -5,6 +5,9 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -24,6 +27,7 @@ import protocols.Constants;
 import protocols.Election;
 import protocols.EnterSystem;
 import protocols.Message;
+import protocols.SpaceReclaiming;
 import user.User;
 
 public class SSL_Handler implements Runnable {
@@ -38,7 +42,6 @@ public class SSL_Handler implements Runnable {
 	public SSL_Handler(SSLSocket socket) {
 		
 		this.socket = socket;
-		System.out.println("entrei no construtor do handler");
 	}
 
 
@@ -51,7 +54,7 @@ public class SSL_Handler implements Runnable {
 		
 			out = new PrintWriter(socket.getOutputStream(), true);
 			
-			in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+			in = new BufferedReader(new InputStreamReader(socket.getInputStream(), "ISO-8859-1"));
 			
 			while(true){
 				received = in.readLine();
@@ -65,11 +68,7 @@ public class SSL_Handler implements Runnable {
 					continue;
 				}
 				
-				System.out.println("vou ler input" + received);
-				
 				String[] divided = received.split(" ");
-				
-				System.out.println("size " + divided.length);
 				
 				//TODO verificar autenticacao do peer
 				
@@ -138,6 +137,7 @@ public class SSL_Handler implements Runnable {
 							buffer = new char[64000];
 						}			
 						result=Handler.trim(result);
+						
 						result=Arrays.copyOfRange(result, 0, result.length-2);
 						
 						
@@ -154,7 +154,7 @@ public class SSL_Handler implements Runnable {
 							Map.Entry<String,Runnable> pair = (Map.Entry<String,Runnable>)it.next();
 							String idThread = pair.getKey();
 							Runnable thread = pair.getValue();
-							System.out.println("vou mandar backup pro peer "  + idThread);
+							
 							if(thread==this){
 								Message message = new Message(chunk,id,realName);
 								out.println(new String(message.backupMasterSSL()));
@@ -172,11 +172,13 @@ public class SSL_Handler implements Runnable {
 									counterRepl++;
 								}
 							}else{
-								HandleFiles.writeFile("../Chunks"+Peer.getPeerId()+"/"+filename+"."+chunkNumber, (new String(result).getBytes("ISO-8859-1")));
-								CsvHandler.addChunkMeta(chunk, id, realName);
-								CsvHandler.addMasterMeta(chunk, Peer.getPeerId()+"", realName);
-								counterRepl++;
-								answer+=Peer.getPeerId()+" ";
+								if(Peer.iHaveSpace(SpaceReclaiming.directorySize()+chunk.getChunkData().length)){
+									HandleFiles.writeFile("../Chunks"+Peer.getPeerId()+"/"+filename+"."+chunkNumber,(new String(result).getBytes("ISO-8859-1")));
+									CsvHandler.addChunkMeta(chunk, id, realName);
+									CsvHandler.addMasterMeta(chunk, Peer.getPeerId()+"", realName);
+									counterRepl++;
+									answer+=Peer.getPeerId()+" ";
+								}
 							}
 							
 							if(replication==counterRepl)
@@ -328,7 +330,6 @@ public class SSL_Handler implements Runnable {
 										
 										chunkData = new char[64000];
 									}	
-									System.out.println("fodasse " + file.length());
 									file+=new String(chunkDataTotal).substring(0,new String(chunkDataTotal).length()-2);
 									break;
 								}
@@ -412,8 +413,6 @@ public class SSL_Handler implements Runnable {
 						answer+= Constants.CRLF + Constants.CRLF;
 						answer+=listOfPeers;
 						
-						System.out.println(answer);
-						
 					}
 					
 					break;
@@ -437,7 +436,6 @@ public class SSL_Handler implements Runnable {
 							bufferNames = new char[64000];
 						}			
 						
-						System.out.println(new String(resultNames) + " " + (new String(resultNames)).length());
 						
 						if(resultNames.length>0)
 							resultNames=Arrays.copyOfRange(resultNames, 1, resultNames.length);

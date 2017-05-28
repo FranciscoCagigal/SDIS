@@ -15,7 +15,7 @@ public class Election {
 	}
 	
 	public void startElection(){
-		Message message = new Message(null,Peer.getVersion());
+		Message message = new Message(null,"");
 		try {
 			Handler.sendToMc(message.beginElection());
 			

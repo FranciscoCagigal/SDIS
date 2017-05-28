@@ -36,7 +36,7 @@ import user.User;
 public class Peer extends UnicastRemoteObject  implements IPeer {
 
 	private static final long serialVersionUID = 1L;
-	private static String protocolVersion;
+	private static String password;
 	private static int peerId;
 	private static String remoteObject;
 	
@@ -65,7 +65,6 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 	public Peer() throws RemoteException {
 		super();
 		startTime= System.currentTimeMillis();
-		//createDirs();
 	}
 
 	public static void main(String[] args) throws UnknownHostException, RemoteException, MalformedURLException, AlreadyBoundException{
@@ -78,11 +77,11 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 		
 		
 		
-		//Registry registry = LocateRegistry.getRegistry();
+		Registry registry = LocateRegistry.getRegistry();
 		
-		//IPeer iserver= (IPeer) peer;
+		IPeer iserver= (IPeer) peer;
 		
-		//registry.rebind(remoteObject, iserver);
+		registry.rebind(remoteObject, iserver);
 		
 		joinGroups();
 		
@@ -104,43 +103,15 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 				e.printStackTrace();
 			}
 			((SSL_Client)clientThread).sendStart((Peer.getPeerId()+" oi").getBytes());
+			
+			ShareDatabase share = new ShareDatabase();
+			new Thread(share).start();
+			
 		}else{
 			peerThreads.put(peerId+"", null);
 		}
 		
-		System.out.println("encontrei o master");
-
-		
-		if(Peer.getPeerId()==2){
-			
-			
-			diskSpace=100*1000;
-			
-			Runnable op = new ReadFile(new File("../Files1/test.pdf"),3);
-			new Thread(op).start();
-			
-			//Runnable op = new ShareDatabase();
-			//new Thread(op).start();
-			
-			try {
-				Thread.sleep(2000);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-
-			//op = new SpaceReclaiming();
-			//new Thread(op).start();
-			
-			//op = new FileDeletion("test.txt");
-			//new Thread(op).start();
-			
-			op = new ChunkRestore("test.pdf");
-			new Thread(op).start();
-			
-			
-		}
-		
+		System.out.println("encontrei o master");		
 	}
 	
 	public static void setClientThread(SSL_Client newClientConnection){
@@ -166,7 +137,7 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 			return false;
 		}
 		
-		protocolVersion=args[1]; //mudar pra password
+		password=args[1]; //mudar pra password
 		setPeerId(Integer.parseInt(args[0]));
 		remoteObject=args[2];
 		
@@ -255,48 +226,70 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 			e1.printStackTrace();
 		}
 		
-		f = new File("../metadata"+peerId+"/ChunkList.csv");
+		f = new File("../metadata"+peerId+"/PeerList.csv");
 		if(!f.exists()){
 			try {
-				f.createNewFile();				
-				f = new File("../metadata"+peerId+"/MyChunks.csv");
-				if(!f.exists()){
-					f.createNewFile();
-					CsvHandler.updateMemory(0);
-					diskSpace=0;
-				}else diskSpace=CsvHandler.getMemory();
-					
+				f.createNewFile();
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
+		
+		f = new File("../metadata"+peerId+"/ChunkList.csv");
+		if(!f.exists()){
+			try {
+				f.createNewFile();									
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		f = new File("../metadata"+peerId+"/MyChunks.csv");
+		if(!f.exists()){
+			try {
+				f.createNewFile();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			CsvHandler.updateMemory(0);
+			diskSpace=0;
+		}else diskSpace=CsvHandler.getMemory();
 	}
 
 	@Override
-	public void backup(User user,File file, int replDeg) throws RemoteException {
-		Runnable run=new ReadFile(file,replDeg);
-		new Thread(run).start();
+	public void backup(File file, int replDeg) throws RemoteException {
+		if(!amIMaster()){
+			Runnable run=new ReadFile(file,replDeg);
+			new Thread(run).start();
+		}
 	}
 
 	@Override
-	public void restore(User user,String filename) throws RemoteException{
-		Runnable run=new ChunkRestore(filename);
-		new Thread(run).start();		
+	public void restore(String filename) throws RemoteException{
+		if(!amIMaster()){
+			Runnable run=new ChunkRestore(filename);
+			new Thread(run).start();
+		}
 	}
 
 	@Override
-	public void delete(User user,String filename) throws RemoteException{
-		Runnable run=new FileDeletion(filename);
-		new Thread(run).start();
+	public void delete(String filename) throws RemoteException{
+		if(!amIMaster()){
+			Runnable run=new FileDeletion(filename);
+			new Thread(run).start();
+		}
 	}
 
 	@Override
-	public void reclaim(User user, int space) throws RemoteException{
+	public void reclaim( int space) throws RemoteException{
 		diskSpace=space*1000;
 		CsvHandler.updateMemory(space);
-		Runnable run=new SpaceReclaiming();
-		new Thread(run).start();
+		if(!amIMaster()){
+			Runnable run=new SpaceReclaiming();
+			new Thread(run).start();
+		}
 	}
 
 	@Override
@@ -332,9 +325,6 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 		return mcPort;
 	}	
 
-	public static String getVersion(){
-		return protocolVersion;
-	}
 	
 	public static Boolean amIMaster(){
 		return imMaster;
@@ -358,6 +348,18 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 	
 	public static MulticastSocket getMCSocket(){
 		return mc;
+	}
+	
+	public static String getPassword(){
+		return password;
+	}
+
+	@Override
+	public String LoginUser(String name, String password) throws RemoteException {
+		if(password.equals(CsvHandler.getUserPassword(name))){
+			return CsvHandler.getUserLevel(name);
+		}else return null;
+		
 	}
 	
 }

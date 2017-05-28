@@ -16,7 +16,7 @@ public class EnterSystem {
 	}
 	
 	public void findMaster(){
-		Message message = new Message(null,Peer.getVersion());
+		Message message = new Message(null,"");
 		int nrTries=0;
 		while(nrTries<5){
 			try {

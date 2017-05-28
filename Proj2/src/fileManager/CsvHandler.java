@@ -34,9 +34,27 @@ public class CsvHandler {
 		return listOfNames;
 	}
 	
+	public synchronized static void createPeer(String id,String pass){
+		File userData = new File("../metadata"+Peer.getPeerId()+"/PeerList.csv");
+		
+		try {
+			FileWriter fileWriter = new FileWriter(userData, true);
+			fileWriter.append(id);
+			fileWriter.append(Constants.COMMA_DELIMITER);
+			fileWriter.append(pass);
+			fileWriter.append(Constants.NEW_LINE_SEPARATOR);
+			fileWriter.close();
+		} 
+		
+		catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
 	public synchronized static void createUser(User user){
 		File userData = new File("../metadata"+Peer.getPeerId()+"/Users.csv");
-		
+		System.out.println(Peer.getPeerId());
 		try {
 			FileWriter fileWriter = new FileWriter(userData, true);
 			fileWriter.append(user.getUsername());
@@ -52,6 +70,58 @@ public class CsvHandler {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+	}
+	
+	public synchronized static boolean checkPeer(String id){
+		File userData = new File("../metadata"+Peer.getPeerId()+"/PeerList.csv");
+		Scanner scanner;
+		
+		if(userData.exists()){
+			try {
+				scanner = new Scanner(userData);
+				scanner.useDelimiter(Constants.NEW_LINE_SEPARATOR);
+				while(scanner.hasNext()){
+					String str=scanner.next();
+					String[] divided = str.split(Constants.COMMA_DELIMITER);
+					if (divided[0].equals(id)) {
+						scanner.close();
+						return true;
+					}
+				}
+				
+				
+			} catch (FileNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		return false;
+	}
+	
+	public synchronized static String getPeerPassword(String id){
+		File userData = new File("../metadata"+Peer.getPeerId()+"/PeerList.csv");
+		Scanner scanner;
+		
+		if(userData.exists()){
+			try {
+				scanner = new Scanner(userData);
+				scanner.useDelimiter(Constants.NEW_LINE_SEPARATOR);
+				while(scanner.hasNext()){
+					String str=scanner.next();
+					String[] divided = str.split(Constants.COMMA_DELIMITER);
+					if (divided[0].equals(id)) {
+						String password = divided[1];
+						scanner.close();
+						return password;
+					}
+				}
+				scanner.close();
+			} catch (FileNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		return null;
 	}
 	
 	public synchronized static boolean checkUser(String name){
@@ -802,7 +872,7 @@ public synchronized static List<String> getPeersChunk(String id,int chunkNumber)
 			if(scanner.hasNext()){
 				str=scanner.next();
 			}
-			metaArray.add(String.valueOf(memory)+Constants.COMMA_DELIMITER);
+			metaArray.add(String.valueOf(memory));
 			while(scanner.hasNext()){
 				str=scanner.next();
 				metaArray.add(str);

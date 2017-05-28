@@ -1,11 +1,13 @@
 package user;
 
-public class User {
+import java.io.Serializable;
+
+public class User{
 	private String username;
 	private String password;
 	private PriorityLevel priorityLevel;
 	
-	public User(String username, String password, String priorityLevel){
+	public User(String username, String password, String priorityLevel) {
 		
 		this.username=username;
 		this.password=password;

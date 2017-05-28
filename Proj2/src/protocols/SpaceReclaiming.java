@@ -20,7 +20,7 @@ public class SpaceReclaiming implements Runnable{
 		while(!Peer.iHaveSpace(directorySize())){
 			Chunk chunk;
 			if((chunk=CsvHandler.eliminateBadChunk())!=null){
-				Message message = new Message(chunk,Peer.getVersion());
+				Message message = new Message(chunk,"");
 				((SSL_Client) Peer.getClientThread()).sendStart(message.createRemoved());
 			}
 		}

@@ -23,6 +23,8 @@ import protocols.Constants;
 import protocols.Election;
 import protocols.EnterSystem;
 import protocols.Message;
+import protocols.ShareDatabase;
+import protocols.SpaceReclaiming;
 import user.User;
 
 public class SSL_Client implements Runnable {
@@ -64,8 +66,6 @@ public class SSL_Client implements Runnable {
 			while(true){
 				String received = "";
 					received = in.readLine();
-					if(received.length()<200)
-						System.out.println("recebi isto cliente " + received);
 					if(!received.equals("ok")){
 						String[] divided = received.split(" ");
 						if(divided.length==4 && divided[2].equals(Constants.COMMAND_RESTORE)){
@@ -114,7 +114,6 @@ public class SSL_Client implements Runnable {
 								resultNames=Message.concatBytes(Handler.trim(resultNames),Handler.trim(bufferNames));
 								resultNames=Handler.trim(resultNames);
 								resultNames=Arrays.copyOfRange(resultNames, 0, resultNames.length-2);
-								System.out.println(new String(resultNames) + " " + resultNames.length);
 								if(new String(resultNames).split(" ").length==Integer.parseInt(divided[1]))
 									break;
 									
@@ -175,7 +174,6 @@ public class SSL_Client implements Runnable {
 								resultNames=Message.concatBytes(Handler.trim(resultNames),Handler.trim(bufferNames));
 								resultNames=Handler.trim(resultNames);
 								resultNames=Arrays.copyOfRange(resultNames, 0, resultNames.length-2);
-								System.out.println(new String(resultNames));
 								if(new String(resultNames).split(" ").length==Integer.parseInt(divided[1]))
 									break;
 									
@@ -195,6 +193,9 @@ public class SSL_Client implements Runnable {
 								}
 							
 						}else if(divided[0].equals(Constants.COMMAND_BACKUP)){
+							
+							
+							
 							String originalPeer = divided[3];
 							String realName=divided[5];
 							String chunkNumber = divided[2];
@@ -216,10 +217,13 @@ public class SSL_Client implements Runnable {
 							result=Handler.trim(result);
 							result=Arrays.copyOfRange(result, 0, result.length-2);
 							
-							HandleFiles.writeFile("../Chunks"+Peer.getPeerId()+"/"+filename+"."+chunkNumber, (new String(result).getBytes("ISO-8859-1")));
-							Chunk chunk = new Chunk(filename,Integer.parseInt(chunkNumber),null,0);
-							CsvHandler.addChunkMeta(chunk, originalPeer, realName);
-							out.println("ok");
+							if(Peer.iHaveSpace(SpaceReclaiming.directorySize()+Long.parseLong(chunkSize))){
+								HandleFiles.writeFile("../Chunks"+Peer.getPeerId()+"/"+filename+"."+chunkNumber, (new String(result).getBytes("ISO-8859-1")));
+								Chunk chunk = new Chunk(filename,Integer.parseInt(chunkNumber),null,0);
+								CsvHandler.addChunkMeta(chunk, originalPeer, realName);
+								out.println("ok");
+							}else out.println("no");
+						
 						}
 						else if(divided[0].equals(Constants.COMMAND_DELETE)){
 							 String filename = divided[1];
@@ -275,14 +279,12 @@ public class SSL_Client implements Runnable {
 				try {
 					Thread.sleep(rnd.nextInt(1000));
 					if(!Handler.isElectionStarted()){
-						System.out.println("a eleiçao começou");
 						Election election = new Election(Peer.getMCSocket());
 						election.startElection();
 					}
 					Thread.sleep(3000);
 					Handler.setElectionStarted(false);
 					if(Peer.amIMaster()){
-						System.out.println("eu sou o master");
 						Peer.getPeers().put(Peer.getPeerId()+"", null);
 					}else{
 						EnterSystem entry = new EnterSystem(Peer.getMCSocket());
@@ -293,7 +295,8 @@ public class SSL_Client implements Runnable {
 						Peer.setClientThread(clientThread);
 						Thread.sleep(3000);
 						((SSL_Client)clientThread).sendStart((Peer.getPeerId()+" oi").getBytes());
-						System.out.println("liguei me ao master");
+						ShareDatabase share = new ShareDatabase();
+						new Thread(share).start();
 					}
 					
 				} catch (InterruptedException e1) {
@@ -305,9 +308,7 @@ public class SSL_Client implements Runnable {
 	}
 	
 	public synchronized void sendStart(byte[] message){
-		System.out.println("yoloooooooooooooooo " + new String(message) + " " + port);
 		out.println(new String(message));
-		System.out.println("enviei caralho ");
 
 	}
 	
