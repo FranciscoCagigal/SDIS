@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
@@ -215,7 +216,7 @@ public class SSL_Client implements Runnable {
 							result=Handler.trim(result);
 							result=Arrays.copyOfRange(result, 0, result.length-2);
 							
-							HandleFiles.writeFile("../Chunks"+Peer.getPeerId()+"/"+filename+"."+chunkNumber, new String(result).getBytes());
+							HandleFiles.writeFile("../Chunks"+Peer.getPeerId()+"/"+filename+"."+chunkNumber, (new String(result).getBytes("ISO-8859-1")));
 							Chunk chunk = new Chunk(filename,Integer.parseInt(chunkNumber),null,0);
 							CsvHandler.addChunkMeta(chunk, originalPeer, realName);
 							out.println("ok");
@@ -312,7 +313,12 @@ public class SSL_Client implements Runnable {
 	
 	public synchronized String sendMessage(byte[] message){
 		
-		out.println(new String(message));
+		try {
+			out.println(new String(message,"ISO-8859-1"));
+		} catch (UnsupportedEncodingException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
 		
 		try {
 			sem.acquire();

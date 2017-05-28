@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -139,6 +140,7 @@ public class SSL_Handler implements Runnable {
 						result=Handler.trim(result);
 						result=Arrays.copyOfRange(result, 0, result.length-2);
 						
+						
 						answer="";
 						Chunk chunk = new Chunk(filename,Integer.parseInt(chunkNumber),new String(result).getBytes(),Integer.parseInt(repDegree));
 						CsvHandler.addMasterMeta(chunk, id, realName);
@@ -170,7 +172,7 @@ public class SSL_Handler implements Runnable {
 									counterRepl++;
 								}
 							}else{
-								HandleFiles.writeFile("../Chunks"+Peer.getPeerId()+"/"+filename+"."+chunkNumber, new String(result).getBytes());
+								HandleFiles.writeFile("../Chunks"+Peer.getPeerId()+"/"+filename+"."+chunkNumber, (new String(result).getBytes("ISO-8859-1")));
 								CsvHandler.addChunkMeta(chunk, id, realName);
 								CsvHandler.addMasterMeta(chunk, Peer.getPeerId()+"", realName);
 								counterRepl++;
@@ -494,7 +496,12 @@ public class SSL_Handler implements Runnable {
 	private String sendMessage(byte[] message){
 		awaitedAnswer=true;
 		System.out.println("vou mandar msg ");
-		out.println(new String(message));
+		try {
+			out.println(new String(message,"ISO-8859-1"));
+		} catch (UnsupportedEncodingException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
 		try {
 			sem.acquire();
 		} catch (InterruptedException e) {
