@@ -51,8 +51,6 @@ public class SSL_Server implements Runnable{
 			
 			try {
 				socket = (SSLSocket)serverSocket.accept();
-				
-				System.out.println("porta " + socket.getPort());
 			} catch (IOException e) {
 				
 				e.printStackTrace();

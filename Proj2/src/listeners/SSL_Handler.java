@@ -37,6 +37,7 @@ public class SSL_Handler implements Runnable {
 	public SSL_Handler(SSLSocket socket) {
 		
 		this.socket = socket;
+		System.out.println("entrei no construtor do handler");
 	}
 
 
@@ -53,6 +54,8 @@ public class SSL_Handler implements Runnable {
 			
 			while(true){
 				received = in.readLine();
+				
+				System.out.println("vou ler input" + received);
 				
 				if(awaitedAnswer){
 					System.out.println("resposta em espera " +received );
@@ -75,6 +78,7 @@ public class SSL_Handler implements Runnable {
 				
 				if(divided[1].equals("oi")){
 					Peer.getPeers().put(divided[0], this);
+					System.out.println("tenho x peers " + Peer.getPeers().size());
 					continue;
 				}
 				
@@ -148,6 +152,7 @@ public class SSL_Handler implements Runnable {
 							Map.Entry<String,Runnable> pair = (Map.Entry<String,Runnable>)it.next();
 							String idThread = pair.getKey();
 							Runnable thread = pair.getValue();
+							System.out.println("vou mandar backup pro peer "  + idThread);
 							if(thread==this){
 								Message message = new Message(chunk,id,realName);
 								out.println(new String(message.backupMasterSSL()));
@@ -164,13 +169,13 @@ public class SSL_Handler implements Runnable {
 									CsvHandler.addMasterMeta(chunk, idThread, realName);
 									counterRepl++;
 								}
-							}/*else{
+							}else{
 								HandleFiles.writeFile("../Chunks"+Peer.getPeerId()+"/"+filename+"."+chunkNumber, new String(result).getBytes());
 								CsvHandler.addChunkMeta(chunk, id, realName);
 								CsvHandler.addMasterMeta(chunk, Peer.getPeerId()+"", realName);
 								counterRepl++;
 								answer+=Peer.getPeerId()+" ";
-							}*/
+							}
 							
 							if(replication==counterRepl)
 								break;
@@ -312,14 +317,10 @@ public class SSL_Handler implements Runnable {
 									//String chunkReceived=in.readLine();
 									//
 									String chunkReceived=in.readLine();
-									System.out.println("fodasse " + chunkReceived);
 									counter=0;
 									while((counter+=in.read(chunkData))!=-1){
-										System.out.println("counter " + counter + " " + new String(chunkData).substring(0,10));
 										chunkDataTotal=Message.concatBytes(Handler.trim(chunkDataTotal),Handler.trim(chunkData));
 										chunkDataTotal=Handler.trim(chunkDataTotal);
-										System.out.println("counter " +counter);
-										System.out.println("fodasse " + chunkReceived.split(" ")[0]);
 										if(counter-2==Integer.parseInt(chunkReceived.split(" ")[0]))
 											break;
 										
@@ -337,18 +338,34 @@ public class SSL_Handler implements Runnable {
 						out.println("RESTOREANSWER");
 						out.println(file);
 						out.println("ok");
-						System.out.println("o file tem " + file.length());
 					}
 					in.readLine();
 					
 					
 					break;
 					
-				case "CREATE":
+				case Constants.COMMAND_CREATEUSER:
 					
 					username = divided[4];
 					newPassword = divided[5];
 					level = divided[6];
+					
+					HashMap<String,Runnable> copy = new HashMap<String,Runnable>(Peer.getPeers());
+					Iterator<Entry<String,Runnable>> it = copy.entrySet().iterator();
+					while(it.hasNext()) {
+						Map.Entry<String,Runnable> pair = (Map.Entry<String,Runnable>)it.next();
+						String idThread = pair.getKey();
+						Runnable thread = pair.getValue();
+						
+						if(!idThread.equals(id) && !idThread.equals(Peer.getPeerId()+"")){
+							Message message = new Message(new User(username,newPassword,level));
+							((SSL_Handler) thread).sendMessageNoRspns(message.createUser());
+						}else if(idThread.equals(Peer.getPeerId()+"")){
+							CsvHandler.createUser(new User(username,newPassword,level));
+						}
+						
+						it.remove();
+					}
 					
 					break;
 				
@@ -455,11 +472,12 @@ public class SSL_Handler implements Runnable {
 		} catch (IOException e) {
 			System.out.println("foi abaixo a socket server");
 			
-			/*if(!Peer.amIMaster()){
+			if(!Peer.amIMaster()){
 				Random rnd = new Random();
 				try {
 					Thread.sleep(rnd.nextInt(1000));
 					if(!Handler.isElectionStarted()){
+						System.out.println("a eleiçao começou");
 						Election election = new Election(Peer.getMCSocket());
 						election.startElection();
 					}
@@ -480,7 +498,7 @@ public class SSL_Handler implements Runnable {
 					// TODO Auto-generated catch block
 					e1.printStackTrace();
 				}
-			}*/
+			}
 			
 			e.printStackTrace();
 		}

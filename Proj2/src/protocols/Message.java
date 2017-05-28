@@ -1,6 +1,7 @@
 package protocols;
 
 import peer.Peer;
+import user.User;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -15,6 +16,7 @@ public class Message {
 	private String originalPeer;
 	private String realName;
 	private List<String> names;
+	private User user;
 	
 	public Message (List<String> names){
 		this.names=names;
@@ -22,6 +24,10 @@ public class Message {
 	
 	public Message (Chunk chunk1){
 		chunk=chunk1;
+	}
+	
+	public Message(User user){
+		this.user=user;
 	}
 	
 	public Message (Chunk chunk1, String originalPeer){
@@ -159,6 +165,23 @@ public class Message {
 	protected byte[] beginElection(){
 		String message=Constants.COMMAND_BEGINELECTION+" "+Peer.getVersion() + " ";
 		message+= Constants.CRLF + Constants.CRLF;
+		byte[] buffer = message.getBytes(StandardCharsets.UTF_8);
+		
+		return buffer;
+	}
+	
+	public byte[] createPeerUser(){
+		String message="1 ";
+		message+=Peer.getPeerId() + " pass " +Constants.COMMAND_CREATEUSER+" "+user.getUsername() + " " + user.getPassword() + " " + user.getPriorityLevel().toString().toLowerCase();
+		message+= Constants.CRLF;
+		byte[] buffer = message.getBytes(StandardCharsets.UTF_8);
+		
+		return buffer;
+	}
+	
+	public byte[] createUser(){
+		String message=Constants.COMMAND_CREATEUSER+" "+user.getUsername() + " " + user.getPassword() + " " + user.getPriorityLevel().toString().toLowerCase();
+		message+= Constants.CRLF;
 		byte[] buffer = message.getBytes(StandardCharsets.UTF_8);
 		
 		return buffer;

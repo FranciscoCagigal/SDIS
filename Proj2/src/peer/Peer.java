@@ -26,6 +26,7 @@ import protocols.ChunkBackup;
 import protocols.ChunkRestore;
 import protocols.EnterSystem;
 import protocols.FileDeletion;
+import protocols.Message;
 import protocols.ReadFile;
 import protocols.ServiceState;
 import protocols.ShareDatabase;
@@ -110,12 +111,12 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 		System.out.println("encontrei o master");
 
 		
-		if(Peer.getPeerId()==3){
+		if(Peer.getPeerId()==4){
 			
 			
 			diskSpace=100*1000;
 			
-			Runnable op = new ReadFile(new File("../Files1/test.txt"),2);
+			Runnable op = new ReadFile(new File("../Files1/test.txt"),3);
 			new Thread(op).start();
 			
 			//Runnable op = new ShareDatabase();
@@ -128,8 +129,8 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 				e.printStackTrace();
 			}
 
-			op = new SpaceReclaiming();
-			new Thread(op).start();
+			//op = new SpaceReclaiming();
+			//new Thread(op).start();
 			
 			//op = new FileDeletion("test.txt");
 			//new Thread(op).start();
@@ -343,6 +344,8 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 	public void createUser(String name, String password, String level) throws RemoteException {
 		User user = new User(name, password, level);
 		CsvHandler.createUser(user);
+		Message message = new Message(user);
+		((SSL_Client)clientThread).sendStart(message.createPeerUser());
 	}
 
 	public static int getSSLport() {

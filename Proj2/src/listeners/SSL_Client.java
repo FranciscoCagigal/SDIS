@@ -8,6 +8,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.Random;
 import java.util.concurrent.Semaphore;
 
 import javax.net.ssl.SSLSocket;
@@ -18,6 +19,8 @@ import fileManager.CsvHandler;
 import fileManager.HandleFiles;
 import peer.Peer;
 import protocols.Constants;
+import protocols.Election;
+import protocols.EnterSystem;
 import protocols.Message;
 import user.User;
 
@@ -51,7 +54,7 @@ public class SSL_Client implements Runnable {
 		
 		try {
 			
-			socket = (SSLSocket) ssf.createSocket(host,port);			
+			socket = (SSLSocket) ssf.createSocket(host,port);
 			out = new PrintWriter(socket.getOutputStream(), true);			
 			in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 			
@@ -216,7 +219,6 @@ public class SSL_Client implements Runnable {
 							Chunk chunk = new Chunk(filename,Integer.parseInt(chunkNumber),null,0);
 							CsvHandler.addChunkMeta(chunk, originalPeer, realName);
 							out.println("ok");
-							System.out.println("vou mandar o ok");
 						}
 						else if(divided[0].equals(Constants.COMMAND_DELETE)){
 							 String filename = divided[1];
@@ -243,6 +245,10 @@ public class SSL_Client implements Runnable {
 							Chunk chunk = new Chunk(filename,Integer.parseInt(chunkNumber),null,0);
 							CsvHandler.replacePeerInitiator(chunk, oldPeer, newPeer);
 							
+						}else if(divided[0].equals(Constants.COMMAND_CREATEUSER)){
+							
+							CsvHandler.createUser(new User(divided[1],divided[2],divided[3]));
+							
 						}
 					}		
 			}
@@ -258,16 +264,46 @@ public class SSL_Client implements Runnable {
 			System.out.println("vou fechar ");
 			try {
 				socket.close();
-			} catch (IOException e1) {
+			} catch (IOException e2) {
 				// TODO Auto-generated catch block
-				e1.printStackTrace();
+				e2.printStackTrace();
 			}
-			e.printStackTrace();
+			
+			if(!Peer.amIMaster()){
+				Random rnd = new Random();
+				try {
+					Thread.sleep(rnd.nextInt(1000));
+					if(!Handler.isElectionStarted()){
+						System.out.println("a eleiçao começou");
+						Election election = new Election(Peer.getMCSocket());
+						election.startElection();
+					}
+					Thread.sleep(3000);
+					Handler.setElectionStarted(false);
+					if(Peer.amIMaster()){
+						System.out.println("eu sou o master");
+						Peer.getPeers().put(Peer.getPeerId()+"", null);
+					}else{
+						EnterSystem entry = new EnterSystem(Peer.getMCSocket());
+						entry.findMaster();
+						Thread.sleep(3000);
+						SSL_Client clientThread = new SSL_Client(Peer.getMasterAddress().getHostName(),Peer.getMasterPort());
+						new Thread(clientThread).start();
+						Peer.setClientThread(clientThread);
+						((SSL_Client)clientThread).sendStart((Peer.getPeerId()+" oi").getBytes());
+						System.out.println("liguei me ao master");
+					}
+					
+				} catch (InterruptedException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+			}
 		}
 	}
 	
 	public synchronized void sendStart(byte[] message){
-		
+		System.out.println("yoloooooooooooooooo " + new String(message));
 		out.println(new String(message));
 
 	}
