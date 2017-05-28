@@ -216,6 +216,7 @@ public class SSL_Client implements Runnable {
 							Chunk chunk = new Chunk(filename,Integer.parseInt(chunkNumber),null,0);
 							CsvHandler.addChunkMeta(chunk, originalPeer, realName);
 							out.println("ok");
+							System.out.println("vou mandar o ok");
 						}
 						else if(divided[0].equals(Constants.COMMAND_DELETE)){
 							 String filename = divided[1];

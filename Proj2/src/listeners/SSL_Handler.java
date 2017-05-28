@@ -55,6 +55,7 @@ public class SSL_Handler implements Runnable {
 				received = in.readLine();
 				
 				if(awaitedAnswer){
+					System.out.println("resposta em espera " +received );
 					answer=received;
 					sem.release();
 					continue;
@@ -147,20 +148,29 @@ public class SSL_Handler implements Runnable {
 							Map.Entry<String,Runnable> pair = (Map.Entry<String,Runnable>)it.next();
 							String idThread = pair.getKey();
 							Runnable thread = pair.getValue();
-							if(!idThread.equals(Peer.getPeerId()+"")){
+							if(thread==this){
+								Message message = new Message(chunk,id,realName);
+								out.println(new String(message.backupMasterSSL()));
+								if(in.readLine().equals("ok")){
+									answer+=idThread+" ";
+									CsvHandler.addMasterMeta(chunk, idThread, realName);
+									counterRepl++;
+								}
+							}
+							else if(!idThread.equals(Peer.getPeerId()+"")){
 								Message message = new Message(chunk,id,realName);
 								if(((SSL_Handler) thread).sendMessage(message.backupMasterSSL()).equals("ok")){
 									answer+=idThread+" ";
 									CsvHandler.addMasterMeta(chunk, idThread, realName);
 									counterRepl++;
 								}
-							}else{
+							}/*else{
 								HandleFiles.writeFile("../Chunks"+Peer.getPeerId()+"/"+filename+"."+chunkNumber, new String(result).getBytes());
 								CsvHandler.addChunkMeta(chunk, id, realName);
 								CsvHandler.addMasterMeta(chunk, Peer.getPeerId()+"", realName);
 								counterRepl++;
 								answer+=Peer.getPeerId()+" ";
-							}
+							}*/
 							
 							if(replication==counterRepl)
 								break;
@@ -210,14 +220,14 @@ public class SSL_Handler implements Runnable {
 						while((counter+=in.read(chunkData))!=-1){
 							chunkDataTotal=Message.concatBytes(Handler.trim(chunkDataTotal),Handler.trim(chunkData));
 							chunkDataTotal=Handler.trim(chunkDataTotal);
-							chunkDataTotal=Arrays.copyOfRange(chunkDataTotal, 0, chunkDataTotal.length-2);
 							if(counter-2==Integer.parseInt(chunkSize))
 								break;
 							
 							chunkData = new char[64000];
 						}	
 					}
-					
+					chunkDataTotal=Handler.trim(chunkDataTotal);
+					chunkDataTotal=Arrays.copyOfRange(chunkDataTotal, 0, chunkDataTotal.length-2);
 
 					HashMap<String,Runnable> copy = new HashMap<String,Runnable>(Peer.getPeers());
 					Iterator<Entry<String,Runnable>> it = copy.entrySet().iterator();
@@ -493,6 +503,7 @@ public class SSL_Handler implements Runnable {
 	
 	private String sendMessage(byte[] message){
 		awaitedAnswer=true;
+		System.out.println("vou mandar msg ");
 		out.println(new String(message));
 		try {
 			sem.acquire();

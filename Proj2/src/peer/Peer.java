@@ -110,7 +110,7 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 		System.out.println("encontrei o master");
 
 		
-		if(!imMaster){
+		if(Peer.getPeerId()==3){
 			
 			
 			diskSpace=100*1000;
@@ -129,7 +129,7 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 			}
 
 			op = new SpaceReclaiming();
-			//new Thread(op).start();
+			new Thread(op).start();
 			
 			//op = new FileDeletion("test.txt");
 			//new Thread(op).start();

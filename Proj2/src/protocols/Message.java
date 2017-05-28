@@ -7,6 +7,7 @@ import java.util.List;
 
 import fileManager.Chunk;
 import fileManager.HandleFiles;
+import listeners.Handler;
 
 public class Message {
 	
@@ -169,10 +170,10 @@ public class Message {
 		message+=Constants.COMMAND_REMOVED+" ";
 		message+= chunk.getFileId()+" ";
 		message+= chunk.getChunkNumber()+" ";
-		message+= chunk.getChunkData().length+" ";
+		message+= Handler.trim(chunk.getChunkData()).length+" ";
 		message+= Constants.CRLF + Constants.CRLF;
 		
-		byte[] buffer = concatBytes(message.getBytes(StandardCharsets.UTF_8),chunk.getChunkData());	
+		byte[] buffer = concatBytes(message.getBytes(StandardCharsets.UTF_8),Handler.trim(chunk.getChunkData()));	
 		
 		return buffer;
 	}
