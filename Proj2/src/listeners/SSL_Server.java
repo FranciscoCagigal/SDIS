@@ -6,6 +6,8 @@ import javax.net.ssl.SSLServerSocket;
 import javax.net.ssl.SSLServerSocketFactory;
 import javax.net.ssl.SSLSocket;
 
+import peer.Peer;
+
 public class SSL_Server implements Runnable{
 
 	private SSLServerSocket serverSocket;
@@ -26,6 +28,7 @@ public class SSL_Server implements Runnable{
 		System.setProperty("javax.net.ssl.trustStore","../truststore");
         
 		System.setProperty("javax.net.ssl.trustStorePassword","123456");
+		
 		
 		SSLServerSocketFactory ssf = (SSLServerSocketFactory) SSLServerSocketFactory.getDefault();  
 		
@@ -48,6 +51,8 @@ public class SSL_Server implements Runnable{
 			
 			try {
 				socket = (SSLSocket)serverSocket.accept();
+				
+				System.out.println("porta " + socket.getPort());
 			} catch (IOException e) {
 				
 				e.printStackTrace();
@@ -55,6 +60,7 @@ public class SSL_Server implements Runnable{
 			
 			Runnable handler= new SSL_Handler(socket);
 			new Thread(handler).start();
+			
 		}		
 	}
 }

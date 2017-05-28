@@ -107,30 +107,30 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 		if(!imMaster){
 			clientThread = new SSL_Client(Peer.getMasterAddress().getHostName(),Peer.getMasterPort());
 			new Thread(clientThread).start();
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			((SSL_Client)clientThread).sendStart((Peer.getPeerId()+" oi").getBytes());
 		}else{
 			peerThreads.put(peerId+"", null);
 		}
 		
 		System.out.println("encontrei o master");
-		
-		try {
-			Thread.sleep(1000);
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+
 		
 		if(!imMaster){
 			
 			
 			diskSpace=100*1000;
 			
-			
-			//Runnable op = new ReadFile(new File("../Files1/test.txt"),1);
-			//new Thread(op).start();
-			
-			Runnable op = new ShareDatabase();
+			Runnable op = new ReadFile(new File("../Files1/test.txt"),2);
 			new Thread(op).start();
+			
+			//Runnable op = new ShareDatabase();
+			//new Thread(op).start();
 			
 			try {
 				Thread.sleep(2000);
@@ -141,11 +141,11 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 
 			//Runnable op = new SpaceReclaiming();
 			//new Thread(op).start();
-			//Runnable op = new FileDeletion("","test.txt");
+			//op = new FileDeletion("test.txt");
 			//new Thread(op).start();
 			
 			op = new ChunkRestore("test.txt");
-			new Thread(op).start();
+			//new Thread(op).start();
 			
 			
 		}
@@ -170,9 +170,9 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 	}
 	
 	public static void addToPeers(String id, InetAddress address, int port){
-		Runnable client = new SSL_Client(address.getHostName(),port);
-		new Thread(client).start();
-		peerThreads.put(id, client);
+		//Runnable client = new SSL_Client(address.getHostName(),port);
+		//new Thread(client).start();
+		//peerThreads.put(id, client);
 	}
 	
 	public static HashMap<String,Runnable> getPeers(){

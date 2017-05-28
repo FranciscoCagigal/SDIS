@@ -8,12 +8,14 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.concurrent.Semaphore;
 
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 
 import fileManager.Chunk;
 import fileManager.CsvHandler;
+import fileManager.HandleFiles;
 import peer.Peer;
 import protocols.Constants;
 import protocols.Message;
@@ -27,6 +29,8 @@ public class SSL_Client implements Runnable {
 	private static BufferedReader in;
 	private String host;
 	private int port;
+	String answer="";
+	private final Semaphore sem = new Semaphore(0, true);
 	
 	public SSL_Client(String host, int port) {
 		this.host=host;
@@ -54,8 +58,182 @@ public class SSL_Client implements Runnable {
 			System.out.println("vou iniciar cliente ");
 			
 			while(true){
-			//	received = in.readLine();
-				//System.out.println("Request answer: " + received);
+				String received = "";
+					received = in.readLine();
+					if(received.length()<200)
+						System.out.println("recebi isto cliente " + received);
+					if(!received.equals("ok")){
+						String[] divided = received.split(" ");
+						if(divided.length==4 && divided[2].equals(Constants.COMMAND_RESTORE)){
+							
+							char[] buffer = new char[64000];
+							char[] result = new char[64000];
+							
+							int counter=0;
+							while((counter+=in.read(buffer))!=-1){
+								
+								result=Message.concatBytes(Handler.trim(result),Handler.trim(buffer));
+								if(counter-2>=Integer.parseInt(divided[3]))
+									break;
+								
+								buffer = new char[64000];
+							}
+							result=Handler.trim(result);
+							result=Arrays.copyOfRange(result, 2, result.length-2);
+							
+						}else if(received.equals("RESTOREANSWER")){					
+							char[] buffer = new char[64000];
+							char[] result = new char[64000];
+							String file="";
+							while(in.read(buffer)!=-1){
+								buffer = Handler.trim(buffer);
+								
+								if(new String(Arrays.copyOfRange(buffer, 0, buffer.length-2)).equals("ok")){
+									break;	
+								}				
+								file+=new String(buffer);
+								buffer = new char[64000];					
+							}
+							answer=file.substring(0,file.length()-2);
+							sem.release();
+						}else if(divided[0].equals("PEERBACKUP")){
+							
+							for(int i=1;i <divided.length;i++){
+								answer+=divided[i]+" ";
+							}
+							sem.release();							
+						}else if(divided[0].equals(Constants.COMMAND_NAMES)){
+							char[] bufferNames = new char[64000];
+							char[] resultNames = new char[64000];
+							
+							while((in.read(bufferNames))!=-1){
+								resultNames=Message.concatBytes(Handler.trim(resultNames),Handler.trim(bufferNames));
+								resultNames=Handler.trim(resultNames);
+								resultNames=Arrays.copyOfRange(resultNames, 0, resultNames.length-2);
+								System.out.println(new String(resultNames) + " " + resultNames.length);
+								if(new String(resultNames).split(" ").length==Integer.parseInt(divided[1]))
+									break;
+									
+								bufferNames = new char[64000];
+							}
+							
+							
+							if(resultNames.length>1)
+								resultNames=Arrays.copyOfRange(resultNames, 2, resultNames.length);
+							
+							String[] dividedNames = new String(resultNames).split(" ");
+							
+							for(int i=0;i<dividedNames.length;i++){
+								String[] dividedName = dividedNames[i].split(";");
+								if(dividedName.length==3&&!CsvHandler.checkUser(dividedName[0])){
+									User user = new User(dividedName[0],dividedName[1],dividedName[2]);
+									CsvHandler.createUser(user);
+								}
+							}
+							received="ok";
+						} else if(divided[0].equals(Constants.COMMAND_GETMYCHUNKS)){
+							char[] bufferNames = new char[64000];
+							char[] resultNames = new char[64000];
+							
+							while((in.read(bufferNames))!=-1){
+								resultNames=Message.concatBytes(Handler.trim(resultNames),Handler.trim(bufferNames));
+								resultNames=Handler.trim(resultNames);
+								resultNames=Arrays.copyOfRange(resultNames, 0, resultNames.length-2);
+									
+								if(new String(resultNames).split(" ").length==Integer.parseInt(divided[1])+1)
+									break;
+									
+								bufferNames = new char[64000];
+							}
+								if(resultNames.length>2)
+									resultNames=Arrays.copyOfRange(resultNames, 3, resultNames.length);
+								
+								String[] dividedNames = new String(resultNames).split(" ");
+								
+								for(int i=0;i<dividedNames.length;i++){
+									String[] dividedName = dividedNames[i].split(";");
+									if(dividedName.length>4){
+										String listOfPeers="";
+										for(int j=4;j<dividedName.length;j++){
+											listOfPeers+=dividedName[j] + " ";
+										}
+										CsvHandler.addMyChunkMeta(new Chunk(dividedName[0],Integer.parseInt(dividedName[1]),null,0), listOfPeers, dividedName[2]);
+									}
+								}
+								received="ok";
+							
+							
+						}else if(divided[0].equals(Constants.COMMAND_GETOTHERCHUNKS)){
+							char[] bufferNames = new char[64000];
+							char[] resultNames = new char[64000];
+							
+							while((in.read(bufferNames))!=-1){
+								resultNames=Message.concatBytes(Handler.trim(resultNames),Handler.trim(bufferNames));
+								resultNames=Handler.trim(resultNames);
+								resultNames=Arrays.copyOfRange(resultNames, 0, resultNames.length-2);
+								System.out.println(new String(resultNames));
+								if(new String(resultNames).split(" ").length==Integer.parseInt(divided[1]))
+									break;
+									
+								bufferNames = new char[64000];
+							}
+								if(resultNames.length>2)
+									resultNames=Arrays.copyOfRange(resultNames, 3, resultNames.length);
+								
+								String[] dividedNames = new String(resultNames).split(" ");
+								
+								for(int i=0;i<dividedNames.length;i++){
+									String[] dividedName = dividedNames[i].split(";");
+									if(dividedName.length==3){
+										String[] dividedfile = dividedName[0].split("\\.");
+										CsvHandler.addChunkMeta(new Chunk(dividedfile[0],Integer.parseInt(dividedfile[1]),null,0), dividedName[1], dividedName[2]);
+									}
+								}
+							
+						}else if(divided[0].equals(Constants.COMMAND_BACKUP)){
+							String originalPeer = divided[3];
+							String realName=divided[5];
+							String chunkNumber = divided[2];
+							String filename = divided[1];
+							String chunkSize = divided[4];
+							int counter=0;
+							
+							char[] buffer = new char[64000];
+							char[] result = new char[64000];
+							while((counter+=in.read(buffer))!=-1){
+								result=Message.concatBytes(Handler.trim(result),Handler.trim(buffer));
+
+								if(counter<50)
+									System.out.println("lol " + new String(buffer).substring(0, counter));
+								if(counter-2==Integer.parseInt(chunkSize))
+									break;
+								
+								buffer = new char[64000];
+							}
+							
+							result=Handler.trim(result);
+							result=Arrays.copyOfRange(result, 0, result.length-2);
+							
+							HandleFiles.writeFile("../Chunks"+Peer.getPeerId()+"/"+filename+"."+chunkNumber, new String(result).getBytes());
+							Chunk chunk = new Chunk(filename,Integer.parseInt(chunkNumber),null,0);
+							CsvHandler.addChunkMeta(chunk, originalPeer, realName);
+						}
+						else if(divided[0].equals(Constants.COMMAND_DELETE)){
+							 String filename = divided[1];
+							 HandleFiles.eraseFile( "../Chunks"+Peer.getPeerId()+"/", filename);
+							 CsvHandler.deleteChunks(filename, "../metadata"+Peer.getPeerId()+"/MyChunks.csv");
+							 CsvHandler.deleteChunks(filename, "../metadata"+Peer.getPeerId()+"/ChunkList.csv");
+							 received="ok";
+						}else if(divided[0].equals(Constants.COMMAND_RESTORE)){
+							String chunkNumber = divided[2];
+							String filename = divided[1];
+							byte[] chunkData = HandleFiles.readFile("../Chunks"+Peer.getPeerId()+"/"+filename+"."+chunkNumber);
+							chunkData=Handler.trim(chunkData);
+							Chunk chunk = new Chunk(filename,Integer.parseInt(chunkNumber),chunkData,0);
+							Message message1 = new Message(chunk);
+							out.println(new String(message1.answerRestoreSSL()));
+						}
+					}		
 			}
 			
 			
@@ -77,149 +255,25 @@ public class SSL_Client implements Runnable {
 		}
 	}
 	
+	public synchronized void sendStart(byte[] message){
+		
+		out.println(new String(message));
+
+	}
+	
 	public synchronized String sendMessage(byte[] message){
 		
 		out.println(new String(message));
-		String received = "";
+		
 		try {
-			received = in.readLine();
-			
-			if(!received.equals("ok")){
-				String[] divided = received.split(" ");
-				if(divided.length==4 && divided[2].equals(Constants.COMMAND_RESTORE)){
-					
-					char[] buffer = new char[64000];
-					char[] result = new char[64000];
-					
-					int counter=0;
-					
-					while((counter+=in.read(buffer))!=-1){
-						
-						result=Message.concatBytes(Handler.trim(result),Handler.trim(buffer));
-						if(counter-2>=Integer.parseInt(divided[3]))
-							break;
-						
-						buffer = new char[64000];
-					}
-					result=Handler.trim(result);
-					result=Arrays.copyOfRange(result, 2, result.length-2);
-					received=new String(result);
-				}else if(received.equals("RESTOREANSWER")){					
-					char[] buffer = new char[64000];
-					char[] result = new char[64000];
-					String file="";
-					while(in.read(buffer)!=-1){
-						buffer = Handler.trim(buffer);
-						
-						System.out.println("tamanho before send " + buffer.length);
-						if(new String(Arrays.copyOfRange(buffer, 0, buffer.length-2)).equals("ok")){
-							break;	
-						}				
-						file+=new String(buffer);
-						buffer = new char[64000];					
-					}
-					
-					received = file;
-				}else if(divided[0].equals(Constants.COMMAND_NAMES)){
-					char[] bufferNames = new char[64000];
-					char[] resultNames = new char[64000];
-					
-					while((in.read(bufferNames))!=-1){
-						resultNames=Message.concatBytes(Handler.trim(resultNames),Handler.trim(bufferNames));
-						resultNames=Handler.trim(resultNames);
-						resultNames=Arrays.copyOfRange(resultNames, 0, resultNames.length-2);
-						System.out.println(new String(resultNames) + " " + resultNames.length);
-						if(new String(resultNames).split(" ").length==Integer.parseInt(divided[1]))
-							break;
-							
-						bufferNames = new char[64000];
-					}
-					
-					
-					if(resultNames.length>1)
-						resultNames=Arrays.copyOfRange(resultNames, 2, resultNames.length);
-					
-					String[] dividedNames = new String(resultNames).split(" ");
-					
-					for(int i=0;i<dividedNames.length;i++){
-						String[] dividedName = dividedNames[i].split(";");
-						if(dividedName.length==3&&!CsvHandler.checkUser(dividedName[0])){
-							System.out.println(dividedNames[i] + " " + dividedNames[i].length());
-							System.out.println(dividedName[0] + " " + dividedName[1]);
-							User user = new User(dividedName[0],dividedName[1],dividedName[2]);
-							CsvHandler.createUser(user);
-						}
-					}
-					received="ok";
-				} else if(divided[0].equals(Constants.COMMAND_GETMYCHUNKS)){
-					char[] bufferNames = new char[64000];
-					char[] resultNames = new char[64000];
-					
-					while((in.read(bufferNames))!=-1){
-						resultNames=Message.concatBytes(Handler.trim(resultNames),Handler.trim(bufferNames));
-						resultNames=Handler.trim(resultNames);
-						resultNames=Arrays.copyOfRange(resultNames, 0, resultNames.length-2);
-							
-						if(new String(resultNames).split(" ").length==Integer.parseInt(divided[1])+1)
-							break;
-							
-						bufferNames = new char[64000];
-					}
-						if(resultNames.length>2)
-							resultNames=Arrays.copyOfRange(resultNames, 3, resultNames.length);
-						
-						String[] dividedNames = new String(resultNames).split(" ");
-						
-						for(int i=0;i<dividedNames.length;i++){
-							String[] dividedName = dividedNames[i].split(";");
-							if(dividedName.length>4){
-								String listOfPeers="";
-								for(int j=4;j<dividedName.length;j++){
-									listOfPeers+=dividedName[j] + " ";
-								}
-								CsvHandler.addMyChunkMeta(new Chunk(dividedName[0],Integer.parseInt(dividedName[1]),null,0), listOfPeers, dividedName[2]);
-							}
-						}
-						received="ok";
-					
-					
-				}else if(divided[0].equals(Constants.COMMAND_GETOTHERCHUNKS)){
-					char[] bufferNames = new char[64000];
-					char[] resultNames = new char[64000];
-					
-					while((in.read(bufferNames))!=-1){
-						resultNames=Message.concatBytes(Handler.trim(resultNames),Handler.trim(bufferNames));
-						resultNames=Handler.trim(resultNames);
-						resultNames=Arrays.copyOfRange(resultNames, 0, resultNames.length-2);
-						System.out.println(new String(resultNames));
-						if(new String(resultNames).split(" ").length==Integer.parseInt(divided[1]))
-							break;
-							
-						bufferNames = new char[64000];
-					}
-						if(resultNames.length>2)
-							resultNames=Arrays.copyOfRange(resultNames, 3, resultNames.length);
-						
-						String[] dividedNames = new String(resultNames).split(" ");
-						
-						for(int i=0;i<dividedNames.length;i++){
-							String[] dividedName = dividedNames[i].split(";");
-							if(dividedName.length==3){
-								String[] dividedfile = dividedName[0].split("\\.");
-								CsvHandler.addChunkMeta(new Chunk(dividedfile[0],Integer.parseInt(dividedfile[1]),null,0), dividedName[1], dividedName[2]);
-							}
-						}
-						received="ok";
-					
-				}
-			}
-			//System.out.println("Request answer: " + received);			
-		} catch (IOException e) {
+			sem.acquire();
+		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
-			//e.printStackTrace();
-			System.out.println("foi abaixo a socket client");
+			e.printStackTrace();
 		}
-		return received;
+		
+		return answer;
+
 	}
 	
 }

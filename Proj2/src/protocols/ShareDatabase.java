@@ -12,11 +12,8 @@ public class ShareDatabase implements Runnable {
 	
 	public void run() {
 		Message message = new Message(CsvHandler.getUsers());
-		String result=((SSL_Client) Peer.getClientThread()).sendMessage(message.shareNamesSSL());
-		System.out.println(result);
-		result=((SSL_Client) Peer.getClientThread()).sendMessage(message.shareMyChunksSSL());
-		System.out.println(result);
-		result=((SSL_Client) Peer.getClientThread()).sendMessage(message.getChunksStoredSSL());
-		System.out.println(result);
+		((SSL_Client) Peer.getClientThread()).sendStart(message.shareNamesSSL());
+		((SSL_Client) Peer.getClientThread()).sendStart(message.shareMyChunksSSL());
+		((SSL_Client) Peer.getClientThread()).sendStart(message.getChunksStoredSSL());
 	}
 }

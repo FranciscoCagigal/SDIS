@@ -10,6 +10,7 @@ import java.security.NoSuchAlgorithmException;
 
 import fileManager.Chunk;
 import fileManager.CsvHandler;
+import listeners.Handler;
 
 public class ReadFile implements Runnable {
 
@@ -41,7 +42,7 @@ public class ReadFile implements Runnable {
 		
 			    byte[] body = new byte[Constants.CHUNKSIZE];
 			    int bytesRead = bufferInput.read(body, 0, body.length);
-			    
+			    body=Handler.trim(body);
 			    Chunk chunk = new Chunk(fileID, chunkNo, body, replication);
 				
 				Runnable run=new ChunkBackup(chunk,file.getName());

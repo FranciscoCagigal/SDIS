@@ -21,9 +21,7 @@ public class SpaceReclaiming implements Runnable{
 			Chunk chunk;
 			if((chunk=CsvHandler.eliminateBadChunk())!=null){
 				Message message = new Message(chunk,Peer.getVersion());
-				String result=((SSL_Client) Peer.getClientThread()).sendMessage(message.createRemoved());
-				System.out.println(result);
-
+				((SSL_Client) Peer.getClientThread()).sendStart(message.createRemoved());
 			}
 		}
 	}

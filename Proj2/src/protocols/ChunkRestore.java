@@ -31,6 +31,7 @@ public class ChunkRestore implements Runnable {
 		Message message = new Message(chunk,"");
 		String result=((SSL_Client) Peer.getClientThread()).sendMessage(message.restorePeerSSL());
 		
+		
 		File file = new File("../Restores" + Peer.getPeerId()+"/"+fileName);
 		try {
 			file.createNewFile();
