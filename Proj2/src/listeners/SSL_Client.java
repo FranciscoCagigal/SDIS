@@ -290,6 +290,7 @@ public class SSL_Client implements Runnable {
 						SSL_Client clientThread = new SSL_Client(Peer.getMasterAddress().getHostName(),Peer.getMasterPort());
 						new Thread(clientThread).start();
 						Peer.setClientThread(clientThread);
+						Thread.sleep(3000);
 						((SSL_Client)clientThread).sendStart((Peer.getPeerId()+" oi").getBytes());
 						System.out.println("liguei me ao master");
 					}
@@ -303,8 +304,9 @@ public class SSL_Client implements Runnable {
 	}
 	
 	public synchronized void sendStart(byte[] message){
-		System.out.println("yoloooooooooooooooo " + new String(message));
+		System.out.println("yoloooooooooooooooo " + new String(message) + " " + port);
 		out.println(new String(message));
+		System.out.println("enviei caralho ");
 
 	}
 	

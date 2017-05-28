@@ -472,34 +472,6 @@ public class SSL_Handler implements Runnable {
 		} catch (IOException e) {
 			System.out.println("foi abaixo a socket server");
 			
-			if(!Peer.amIMaster()){
-				Random rnd = new Random();
-				try {
-					Thread.sleep(rnd.nextInt(1000));
-					if(!Handler.isElectionStarted()){
-						System.out.println("a eleiçao começou");
-						Election election = new Election(Peer.getMCSocket());
-						election.startElection();
-					}
-					Thread.sleep(3000);
-					Handler.setElectionStarted(false);
-					if(Peer.amIMaster()){
-						
-					}else{
-						EnterSystem entry = new EnterSystem(Peer.getMCSocket());
-						entry.findMaster();
-						Thread.sleep(3000);
-						SSL_Client clientThread = new SSL_Client(Peer.getMasterAddress().getHostName(),Peer.getMasterPort());
-						new Thread(clientThread).start();
-						Peer.setClientThread(clientThread);
-					}
-					
-				} catch (InterruptedException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				}
-			}
-			
 			e.printStackTrace();
 		}
 

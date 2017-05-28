@@ -111,12 +111,12 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 		System.out.println("encontrei o master");
 
 		
-		if(Peer.getPeerId()==4){
+		if(Peer.getPeerId()==2){
 			
 			
 			diskSpace=100*1000;
 			
-			Runnable op = new ReadFile(new File("../Files1/test.txt"),3);
+			Runnable op = new ReadFile(new File("../Files1/test.pdf"),3);
 			new Thread(op).start();
 			
 			//Runnable op = new ShareDatabase();
@@ -135,8 +135,8 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 			//op = new FileDeletion("test.txt");
 			//new Thread(op).start();
 			
-			//op = new ChunkRestore("test.txt");
-			//new Thread(op).start();
+			op = new ChunkRestore("test.pdf");
+			new Thread(op).start();
 			
 			
 		}

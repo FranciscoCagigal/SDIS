@@ -74,7 +74,7 @@ public class Message {
 		String message= ""+chunk.getChunkData().length +" ";
 		message+= Constants.CRLF;
 
-		byte[] buffer = concatBytes(message.getBytes(StandardCharsets.UTF_8),chunk.getChunkData());	
+		byte[] buffer = concatBytes(message.getBytes(),chunk.getChunkData());	
 		
 		return buffer;
 	}
@@ -120,7 +120,7 @@ public class Message {
 		message+= chunk.getChunkNumber() + " " + chunk.getReplication() + " " + chunk.getChunkData().length + " " + originalPeer;
 		message+= Constants.CRLF + Constants.CRLF;
 
-		byte[] buffer = concatBytes(message.getBytes(StandardCharsets.UTF_8),chunk.getChunkData());	
+		byte[] buffer = concatBytes(message.getBytes(),chunk.getChunkData());	
 		
 		return buffer;
 	}
@@ -132,7 +132,7 @@ public class Message {
 		message+= chunk.getChunkNumber() + " " + originalPeer + " " + chunk.getChunkData().length  + " " + realName;
 		message+= Constants.CRLF ;
 
-		byte[] buffer = concatBytes(message.getBytes(StandardCharsets.UTF_8),chunk.getChunkData());	
+		byte[] buffer = concatBytes(message.getBytes(),chunk.getChunkData());	
 		
 		return buffer;
 	}
