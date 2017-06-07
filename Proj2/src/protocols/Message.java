@@ -7,6 +7,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import fileManager.Chunk;
+import fileManager.CsvHandler;
 import fileManager.HandleFiles;
 import listeners.Handler;
 
@@ -42,6 +43,22 @@ public class Message {
 	}
 	
 	
+	public byte[] everythingSSL(){
+		List <String> list1 = CsvHandler.getChunkListFile();
+		List <String> list2 = CsvHandler.getMyChunksFile();
+		String message="1 ";
+		message+=Peer.getPeerId() + " pass " + Constants.COMMAND_EVERYTHING + " " + list1.size() + " " + list2.size() + " ";
+		message+= Constants.CRLF + Constants.CRLF;
+		for(int i =0;i<list1.size();i++){
+			message+= " " + list1.get(i);
+		}
+		for(int i =0;i<list2.size();i++){
+			message+= " " + list2.get(i);
+		}
+		
+		return message.getBytes();
+	}
+	
 	public byte[] getChunksStoredSSL(){
 		List <String> list = HandleFiles.getChunks();
 		String message="1 ";
@@ -55,7 +72,7 @@ public class Message {
 	
 	public byte[] shareMyChunksSSL(){
 		String message="1 ";
-		message+=Peer.getPeerId() + " pass " + Constants.COMMAND_GETMYCHUNKS + " ";// + names.size() + " ";
+		message+=Peer.getPeerId() + " pass " + Constants.COMMAND_GETMYCHUNKS + " ";
 		message+= Constants.CRLF;
 		return message.getBytes();
 	}
@@ -65,13 +82,13 @@ public class Message {
 		message+=Peer.getPeerId() + " pass " + Constants.COMMAND_NAMES + " " + names.size() + " ";
 		message+= Constants.CRLF + Constants.CRLF;
 		for(int i =0;i<names.size();i++){
-			message+= " " + names.get(i).substring(0,  names.get(i).length()-1);
+			message+= " " + names.get(i);
 		}
 		return message.getBytes();
 	}
 	
 	public byte[] answerRestoreSSL(){
-		String message= ""+chunk.getChunkData().length +" ";
+		String message= Constants.COMMAND_RESTORE+" "+chunk.getChunkData().length +" ";
 		message+= Constants.CRLF;
 
 		byte[] buffer = concatBytes(message.getBytes(),chunk.getChunkData());	

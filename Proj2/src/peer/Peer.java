@@ -12,6 +12,7 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.AbstractMap.SimpleEntry;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
@@ -24,6 +25,7 @@ import listeners.SSL_Client;
 import listeners.SSL_Server;
 import protocols.ChunkBackup;
 import protocols.ChunkRestore;
+import protocols.Constants;
 import protocols.EnterSystem;
 import protocols.FileDeletion;
 import protocols.Message;
@@ -93,6 +95,13 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 		EnterSystem entry = new EnterSystem(mc);
 		entry.findMaster();
 		
+		try {
+			Thread.sleep(300);
+		} catch (InterruptedException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		
 		if(!imMaster){
 			clientThread = new SSL_Client(Peer.getMasterAddress().getHostName(),Peer.getMasterPort());
 			new Thread(clientThread).start();
@@ -109,6 +118,23 @@ public class Peer extends UnicastRemoteObject  implements IPeer {
 			
 		}else{
 			peerThreads.put(peerId+"", null);
+			List <String> list1 = CsvHandler.getChunkListFile();
+			List <String> list2 = CsvHandler.getMyChunksFile();
+			for(int i =0;i<list1.size();i++){
+				String[] dividedName= list1.get(i).substring(0,list1.get(i).length()).split(Constants.COMMA_DELIMITER);
+				if(CsvHandler.getInitiatorPeer(dividedName[0],Integer.parseInt(dividedName[1]))==null)
+					CsvHandler.addMasterMeta(new Chunk(dividedName[0],Integer.parseInt(dividedName[1]),null,0),dividedName[3] , dividedName[2]);
+				CsvHandler.addMasterMeta(new Chunk(dividedName[0],Integer.parseInt(dividedName[1]),null,0),Peer.getPeerId()+"", dividedName[2]);
+			}
+			for(int i =0;i<list2.size();i++){
+				String[] dividedName =list2.get(i).split(Constants.COMMA_DELIMITER);
+				if(CsvHandler.getInitiatorPeer(dividedName[0],Integer.parseInt(dividedName[1]))==null){
+					CsvHandler.addMasterMeta(new Chunk(dividedName[0],Integer.parseInt(dividedName[1]),null,0), Peer.getPeerId()+"", dividedName[2]);
+				}
+				for(int j=3;j<dividedName.length;j++){
+					CsvHandler.addMasterMeta(new Chunk(dividedName[0],Integer.parseInt(dividedName[1]),null,0), dividedName[j], dividedName[2]);
+				}
+			}
 		}
 		
 		System.out.println("encontrei o master");		

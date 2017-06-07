@@ -60,15 +60,34 @@ public class SSL_Handler implements Runnable {
 				received = in.readLine();
 				
 				System.out.println("vou ler input" + received);
-				
+				String[] divided = received.split(" ");
 				if(awaitedAnswer){
 					System.out.println("resposta em espera " +received );
-					answer=received;
+					
+					if(divided[0].equals(Constants.COMMAND_RESTORE)){
+						int counter=0;
+						char[] buffer = new char[64000];
+						char[] result = new char[64000];
+						while((counter+=in.read(buffer))!=-1){
+							result=Message.concatBytes(Handler.trim(result),Handler.trim(buffer));
+							System.out.println(counter + "counter");
+							if(counter-2==Integer.parseInt(divided[1]))
+								break;
+							
+							buffer = new char[64000];
+						}
+						result=Handler.trim(result);
+						
+						result=Arrays.copyOfRange(result, 0, result.length-2);
+						System.out.println("sai do semaforo");
+						answer= new String(result);
+					}else answer=received;
+					
 					sem.release();
 					continue;
 				}
 				
-				String[] divided = received.split(" ");
+				
 				
 				//TODO verificar autenticacao do peer
 				
@@ -154,11 +173,11 @@ public class SSL_Handler implements Runnable {
 							Map.Entry<String,Runnable> pair = (Map.Entry<String,Runnable>)it.next();
 							String idThread = pair.getKey();
 							Runnable thread = pair.getValue();
-							
 							if(thread==this){
 								Message message = new Message(chunk,id,realName);
 								out.println(new String(message.backupMasterSSL()));
 								if(in.readLine().equals("ok")){
+									System.out.println("recebo");
 									answer+=idThread+" ";
 									CsvHandler.addMasterMeta(chunk, idThread, realName);
 									counterRepl++;
@@ -194,6 +213,9 @@ public class SSL_Handler implements Runnable {
 					if(type.equals("1")){
 						realName = divided[4];
 						filename = CsvHandler.getHash(realName);
+						
+						HandleFiles.eraseFile("../Chunks"+Peer.getPeerId()+"/",filename);
+						
 						HashMap<String,Runnable> copy = new HashMap<String,Runnable>(Peer.getPeers());
 						Iterator<Entry<String,Runnable>> it = copy.entrySet().iterator();
 						List<String> peersContained = CsvHandler.getPeersChunk(filename);
@@ -204,9 +226,13 @@ public class SSL_Handler implements Runnable {
 							Chunk chunk = new Chunk(filename,0,null,0);
 												
 							if(!idThread.equals(Peer.getPeerId()+"") && peersContained.contains(idThread)){
+								System.out.println("vou mandar po peer " + idThread);
 								Message message = new Message(chunk,"");
 								((SSL_Handler) thread).sendMessageNoRspns(message.deleteMasterSSL());
 								CsvHandler.deleteChunks(filename, "../metadata"+Peer.getPeerId()+"/AllChunks.csv");
+							}else if(idThread.equals(Peer.getPeerId()+"") && peersContained.contains(idThread)){
+								CsvHandler.deleteChunks(filename, "../metadata"+Peer.getPeerId()+"/MyChunks.csv");
+								CsvHandler.deleteChunks(filename, "../metadata"+Peer.getPeerId()+"/ChunkList.csv");
 							}
 							
 							it.remove();
@@ -248,13 +274,13 @@ public class SSL_Handler implements Runnable {
 						Runnable thread = pair.getValue();
 						
 						if(!idThread.equals(id) && !idThread.equals(Peer.getPeerId()+"")){
-							Message message = new Message(chunk,id,realName);
+							Message message = new Message(chunk,id,CsvHandler.getRealName(chunk.getFileId()));
 							if(((SSL_Handler) thread).sendMessage(message.backupMasterSSL()).equals("ok")){
-								CsvHandler.replacePeer(chunk,idThread,Peer.getPeerId()+"");
+								CsvHandler.replacePeer(chunk,id,idThread);
 								newPeerId=idThread;
 								break;
 							}
-						}else if(idThread.equals(Peer.getPeerId()+"")){
+						}else if(idThread.equals(Peer.getPeerId()+"") && !HandleFiles.fileExists("../Chunks"+Peer.getPeerId()+"/"+filename+"."+chunkNumber)){
 							HandleFiles.writeFile("../Chunks"+Peer.getPeerId()+"/"+filename+"."+chunkNumber, new String(chunkDataTotal).getBytes());
 							CsvHandler.addChunkMeta(chunk, id, CsvHandler.getRealName(chunk.getFileId()));
 							CsvHandler.replacePeer(chunk,id,Peer.getPeerId()+"");
@@ -270,10 +296,11 @@ public class SSL_Handler implements Runnable {
 						Map.Entry<String,Runnable> pair = (Map.Entry<String,Runnable>)it.next();
 						String idThread = pair.getKey();
 						Runnable thread = pair.getValue();
-						if(idThread.equals(CsvHandler.getInitiatorPeer(chunk.getFileId(), chunk.getChunkNumber()).split(Constants.COMMA_DELIMITER)[0])){
+						if(!idThread.equals(Peer.getPeerId()+"") &&idThread.equals(CsvHandler.getInitiatorPeer(chunk.getFileId(), chunk.getChunkNumber()).split(Constants.COMMA_DELIMITER)[0])){
 							Message message = new Message(chunk,id,newPeerId);
+							if(thread!=null){
 							((SSL_Handler) thread).sendMessageNoRspns(message.createReplace());
-							break;
+							break;}
 						}
 						
 						it.remove();
@@ -287,7 +314,7 @@ public class SSL_Handler implements Runnable {
 						List<String> list = CsvHandler.getChunksByPeers(id);
 						answer= Constants.COMMAND_GETMYCHUNKS + " " + list.size() + " "+ Constants.CRLF + Constants.CRLF;
 						for(int i =0;i<list.size();i++){
-							answer+= " " + list.get(i);//.substring(0,  names.get(i).length()-1);
+							answer+= " " + list.get(i).substring(0, list.get(i).length()-1);
 						}
 						break;
 					
@@ -314,23 +341,9 @@ public class SSL_Handler implements Runnable {
 								if(!idThread.equals(Peer.getPeerId()+"") && peers.contains(idThread)){
 									
 									Message message = new Message(chunk,"");
-									((SSL_Handler) thread).sendMessageNoRspns(message.restoreMasterSSL());
+									String chunkReceived = ((SSL_Handler) thread).sendMessage(message.restoreMasterSSL());
 									
-									char[] chunkData = new char[64000];
-									char[] chunkDataTotal = new char[64000];
-									//String chunkReceived=in.readLine();
-									//
-									String chunkReceived=in.readLine();
-									counter=0;
-									while((counter+=in.read(chunkData))!=-1){
-										chunkDataTotal=Message.concatBytes(Handler.trim(chunkDataTotal),Handler.trim(chunkData));
-										chunkDataTotal=Handler.trim(chunkDataTotal);
-										if(counter-2==Integer.parseInt(chunkReceived.split(" ")[0]))
-											break;
-										
-										chunkData = new char[64000];
-									}	
-									file+=new String(chunkDataTotal).substring(0,new String(chunkDataTotal).length()-2);
+									file+=chunkReceived;
 									break;
 								}
 								
@@ -416,7 +429,49 @@ public class SSL_Handler implements Runnable {
 					}
 					
 					break;
+				
+				case  Constants.COMMAND_EVERYTHING:{
+					int numberList = Integer.parseInt(divided[4]);
+					int numberMyChunks = Integer.parseInt(divided[5]);
 					
+					if(numberList + numberMyChunks>0){
+						char[] bufferNames = new char[64000];
+						char[] resultNames = new char[64000];
+						while((in.read(bufferNames))!=-1){
+							resultNames=Message.concatBytes(Handler.trim(resultNames),Handler.trim(bufferNames));
+							resultNames=Handler.trim(resultNames);
+							resultNames=Arrays.copyOfRange(resultNames, 0, resultNames.length-2);
+							if(new String(resultNames).split(" ").length==numberList + numberMyChunks+1)
+								break;
+							
+							bufferNames = new char[64000];
+						}
+						
+						if(resultNames.length>0)
+							resultNames=Arrays.copyOfRange(resultNames, 1, resultNames.length);
+						
+						String[] dividedNames = new String(resultNames).split(" ");
+						
+						for(int i=0;i<dividedNames.length;i++){
+							String[] dividedName = dividedNames[i].split(";");
+							if(i+1<=numberList){
+								if(CsvHandler.getInitiatorPeer(dividedName[0],Integer.parseInt(dividedName[1]))==null)
+									CsvHandler.addMasterMeta(new Chunk(dividedName[0],Integer.parseInt(dividedName[1]),null,0),dividedName[3] , dividedName[2]);
+								CsvHandler.addMasterMeta(new Chunk(dividedName[0],Integer.parseInt(dividedName[1]),null,0),id, dividedName[2]);
+							}
+							else{
+								if(CsvHandler.getInitiatorPeer(dividedName[0],Integer.parseInt(dividedName[1]))==null){
+									CsvHandler.addMasterMeta(new Chunk(dividedName[0],Integer.parseInt(dividedName[1]),null,0), id, dividedName[2]);
+								}
+								for(int j=3;j<dividedName.length;j++){
+									CsvHandler.addMasterMeta(new Chunk(dividedName[0],Integer.parseInt(dividedName[1]),null,0), dividedName[j], dividedName[2]);
+								}
+							}
+						}
+					}else in.readLine();
+				}
+					break;
+				
 				case  Constants.COMMAND_NAMES: 
 					
 					String numberOfNames = divided[4];
@@ -455,7 +510,7 @@ public class SSL_Handler implements Runnable {
 						answer+= Constants.CRLF + Constants.CRLF;
 						for(int i=0;i<names.size();i++){
 							if(i+1!=names.size())
-								answer+=names.get(i).substring(0, names.get(i).length()-1) + " ";
+								answer+=names.get(i) + " ";
 							else answer+=names.get(i);
 						}
 						

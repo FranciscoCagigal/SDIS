@@ -11,6 +11,9 @@ public class User{
 		
 		this.username=username;
 		this.password=password;
+		
+		System.out.println(priorityLevel+ " " + priorityLevel.length());
+		
 		if(priorityLevel.equals("low")){
 			this.priorityLevel=PriorityLevel.LOW;
 		}

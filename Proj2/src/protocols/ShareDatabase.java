@@ -13,5 +13,6 @@ public class ShareDatabase implements Runnable {
 		((SSL_Client) Peer.getClientThread()).sendStart(message.shareNamesSSL());
 		((SSL_Client) Peer.getClientThread()).sendStart(message.shareMyChunksSSL());
 		((SSL_Client) Peer.getClientThread()).sendStart(message.getChunksStoredSSL());
+		((SSL_Client) Peer.getClientThread()).sendStart(message.everythingSSL());
 	}
 }
