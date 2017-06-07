@@ -18,8 +18,7 @@ public class FileDeletion implements Runnable {
 	public void run() {
 		
 		//apagar o ficheiro local
-		if(HandleFiles.fileExists("../Files"+Peer.getPeerId()+"/"+fileName))
-			HandleFiles.eraseFile("../Files"+Peer.getPeerId()+"/"+fileName);
+		HandleFiles.eraseFile("../Files"+Peer.getPeerId()+"/",fileName);
 
 		//apagar os chunks da metadata
 		//CsvHandler.deleteChunks(hash, "../metadata"+Peer.getPeerId()+"/MyChunks.csv");

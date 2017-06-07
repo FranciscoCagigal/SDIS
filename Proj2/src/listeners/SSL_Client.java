@@ -9,6 +9,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Random;
 import java.util.concurrent.Semaphore;
 
@@ -65,7 +66,9 @@ public class SSL_Client implements Runnable {
 			
 			while(true){
 				String received = "";
+				System.out.println("repetir");
 					received = in.readLine();
+					System.out.println("recebi algo " + received);
 					if(!received.equals("ok")){
 						String[] divided = received.split(" ");
 						if(divided.length==4 && divided[2].equals(Constants.COMMAND_RESTORE)){
@@ -101,7 +104,7 @@ public class SSL_Client implements Runnable {
 							answer=file.substring(0,file.length()-2);
 							sem.release();
 						}else if(divided[0].equals("PEERBACKUP")){
-							
+							answer="";
 							for(int i=1;i <divided.length;i++){
 								answer+=divided[i]+" ";
 							}
@@ -110,16 +113,17 @@ public class SSL_Client implements Runnable {
 							char[] bufferNames = new char[64000];
 							char[] resultNames = new char[64000];
 							
-							while((in.read(bufferNames))!=-1){
-								resultNames=Message.concatBytes(Handler.trim(resultNames),Handler.trim(bufferNames));
-								resultNames=Handler.trim(resultNames);
-								resultNames=Arrays.copyOfRange(resultNames, 0, resultNames.length-2);
-								if(new String(resultNames).split(" ").length==Integer.parseInt(divided[1]))
-									break;
-									
-								bufferNames = new char[64000];
+							if(Integer.parseInt(divided[1])>0){
+								while((in.read(bufferNames))!=-1){
+									resultNames=Message.concatBytes(Handler.trim(resultNames),Handler.trim(bufferNames));
+									resultNames=Handler.trim(resultNames);
+									resultNames=Arrays.copyOfRange(resultNames, 0, resultNames.length-2);
+									if(new String(resultNames).split(" ").length==Integer.parseInt(divided[1]))
+										break;
+										
+									bufferNames = new char[64000];
+								}
 							}
-							
 							
 							if(resultNames.length>1)
 								resultNames=Arrays.copyOfRange(resultNames, 2, resultNames.length);
@@ -133,6 +137,7 @@ public class SSL_Client implements Runnable {
 									CsvHandler.createUser(user);
 								}
 							}
+							
 							received="ok";
 						} else if(divided[0].equals(Constants.COMMAND_GETMYCHUNKS)){
 							char[] bufferNames = new char[64000];
@@ -152,9 +157,10 @@ public class SSL_Client implements Runnable {
 									resultNames=Arrays.copyOfRange(resultNames, 3, resultNames.length);
 								
 								String[] dividedNames = new String(resultNames).split(" ");
-								
+								System.out.println(Arrays.toString(dividedNames));
 								for(int i=0;i<dividedNames.length;i++){
 									String[] dividedName = dividedNames[i].split(";");
+									System.out.println(dividedName[0]);
 									if(dividedName.length>4){
 										String listOfPeers="";
 										for(int j=4;j<dividedName.length;j++){
@@ -180,9 +186,11 @@ public class SSL_Client implements Runnable {
 								bufferNames = new char[64000];
 							}
 								if(resultNames.length>2)
-									resultNames=Arrays.copyOfRange(resultNames, 3, resultNames.length);
+									resultNames=Arrays.copyOfRange(resultNames, 2, resultNames.length);
 								
 								String[] dividedNames = new String(resultNames).split(" ");
+								
+								System.out.println(Arrays.toString(dividedNames));
 								
 								for(int i=0;i<dividedNames.length;i++){
 									String[] dividedName = dividedNames[i].split(";");
@@ -194,13 +202,12 @@ public class SSL_Client implements Runnable {
 							
 						}else if(divided[0].equals(Constants.COMMAND_BACKUP)){
 							
-							
-							
 							String originalPeer = divided[3];
 							String realName=divided[5];
 							String chunkNumber = divided[2];
 							String filename = divided[1];
 							String chunkSize = divided[4];
+							
 							int counter=0;
 							
 							char[] buffer = new char[64000];
@@ -217,7 +224,7 @@ public class SSL_Client implements Runnable {
 							result=Handler.trim(result);
 							result=Arrays.copyOfRange(result, 0, result.length-2);
 							
-							if(Peer.iHaveSpace(SpaceReclaiming.directorySize()+Long.parseLong(chunkSize))){
+							if(Peer.iHaveSpace(SpaceReclaiming.directorySize()+Long.parseLong(chunkSize)) && !HandleFiles.fileExists("../Chunks"+Peer.getPeerId()+"/"+filename+"."+chunkNumber)){
 								HandleFiles.writeFile("../Chunks"+Peer.getPeerId()+"/"+filename+"."+chunkNumber, (new String(result).getBytes("ISO-8859-1")));
 								Chunk chunk = new Chunk(filename,Integer.parseInt(chunkNumber),null,0);
 								CsvHandler.addChunkMeta(chunk, originalPeer, realName);
@@ -286,6 +293,23 @@ public class SSL_Client implements Runnable {
 					Handler.setElectionStarted(false);
 					if(Peer.amIMaster()){
 						Peer.getPeers().put(Peer.getPeerId()+"", null);
+						List <String> list1 = CsvHandler.getChunkListFile();
+						List <String> list2 = CsvHandler.getMyChunksFile();
+						for(int i =0;i<list1.size();i++){
+							String[] dividedName= list1.get(i).substring(0,list1.get(i).length()).split(Constants.COMMA_DELIMITER);
+							if(CsvHandler.getInitiatorPeer(dividedName[0],Integer.parseInt(dividedName[1]))==null)
+								CsvHandler.addMasterMeta(new Chunk(dividedName[0],Integer.parseInt(dividedName[1]),null,0),dividedName[3] , dividedName[2]);
+							CsvHandler.addMasterMeta(new Chunk(dividedName[0],Integer.parseInt(dividedName[1]),null,0),Peer.getPeerId()+"", dividedName[2]);
+						}
+						for(int i =0;i<list2.size();i++){
+							String[] dividedName =list2.get(i).split(Constants.COMMA_DELIMITER);
+							if(CsvHandler.getInitiatorPeer(dividedName[0],Integer.parseInt(dividedName[1]))==null){
+								CsvHandler.addMasterMeta(new Chunk(dividedName[0],Integer.parseInt(dividedName[1]),null,0), Peer.getPeerId()+"", dividedName[2]);
+							}
+							for(int j=3;j<dividedName.length;j++){
+								CsvHandler.addMasterMeta(new Chunk(dividedName[0],Integer.parseInt(dividedName[1]),null,0), dividedName[j], dividedName[2]);
+							}
+						}
 					}else{
 						EnterSystem entry = new EnterSystem(Peer.getMCSocket());
 						entry.findMaster();
@@ -308,6 +332,7 @@ public class SSL_Client implements Runnable {
 	}
 	
 	public synchronized void sendStart(byte[] message){
+		System.out.println("vou mandar " + message.length);
 		out.println(new String(message));
 
 	}

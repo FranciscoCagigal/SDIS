@@ -61,10 +61,11 @@ public class Handler implements Runnable{
 	}
 	
 	private void electionCandidate(String[] header){
+		System.out.println(header);
 		if(Long.parseLong(header[1])<Peer.getTime() && Long.parseLong(header[1])<masterTime){
 			Peer.setMasterAddress(packet.getAddress());
 			Peer.setMasterPort(packet.getPort());
-			masterTime=Long.parseLong(header[2]);
+			masterTime=Long.parseLong(header[1]);
 			Peer.setImMaster(false);
 		}else if(masterTime>Peer.getTime() && Long.parseLong(header[1])==Peer.getTime()){
 			Peer.setImMaster(true);
